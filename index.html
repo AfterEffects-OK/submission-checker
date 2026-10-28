@@ -347,6 +347,16 @@
       font-weight: 700;
       color: var(--text-main);
     }
+    
+    /* ▼ 追加：スマホカード内のSVGアイコンサイズ調整 */
+    .mobile-card-student svg,
+    .mobile-card-lecture svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      vertical-align: -2px;
+      margin-right: 6px;
+    }
 
     /* 提出状況バッジ */
     .badge {
@@ -731,19 +741,19 @@
         let reqClass = (reqText.includes('必') || reqText.includes('必須')) ? 'req-badge-required' : 'req-badge-optional';
         let reqHtml = '<span class="' + reqClass + '">' + reqText + '</span>';
 
+        const userSvg = '<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        const bookSvg = '<svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>';
+    
         cardHtml += '<div class="mobile-card">';
-        cardHtml += '<div class="mobile-card-student">👤 ' + escapeHtml(r.studentName) + '</div>';
-        
+        cardHtml += '<div class="mobile-card-student">' + userSvg + escapeHtml(r.studentName) + '</div>';
         cardHtml += '<div class="mobile-card-upper">';
         cardHtml += '<div class="mobile-card-title">' + escapeHtml(r.kadaiName) + '</div>';
         cardHtml += '<div class="mobile-card-meta"><span class="' + deadlineClass + '">提出期限：' + escapeHtml(r.deadline) + '</span><br><span style="display:inline-block; margin-top:6px;">' + reqHtml + '</span></div>';
         cardHtml += '</div>';
-
         cardHtml += '<div class="mobile-card-lower">';
-        cardHtml += '<div class="mobile-card-lecture">📚 ' + escapeHtml(r.submitDate) + '</div>';
+        cardHtml += '<div class="mobile-card-lecture">' + bookSvg + escapeHtml(r.submitDate) + '</div>';
         cardHtml += '<div>' + statusHtml + '</div>';
         cardHtml += '</div>';
-
         cardHtml += '</div>';
       }
       cardContainer.innerHTML = cardHtml;
