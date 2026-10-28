@@ -177,15 +177,6 @@
       display: none !important;
     }
 
-    /* 【前期・後期のボタン】表示させたいときは上の非表示をコメントアウトし、こちらのコメントアウトを外します
-    .filter-tabs {
-      display: flex !important;
-      gap: 8px;
-      margin-bottom: 24px;
-      justify-content: center;
-    }
-    */
-
     /* 各タブボタンのデザイン（検索ボタンや周りのトーンに統一） */
     .filter-btn {
       padding: 10px 20px;
@@ -348,7 +339,7 @@
       color: var(--text-main);
     }
     
-    /* ▼ 追加：スマホカード内のSVGアイコンサイズ調整 */
+    /* ▼ スマホカード内のSVGアイコンサイズ調整 */
     .mobile-card-student svg,
     .mobile-card-lecture svg {
       width: 14px;
@@ -378,6 +369,13 @@
       background-color: #fee2e2;
       color: #991b1b;
       box-shadow: 0 2px 5px rgba(153, 27, 27, 0.1);
+    }
+
+    /* 評価不能ファイル用バッジ（黄みのある警告色） */
+    .status-invalid {
+      background-color: #fef3c7;
+      color: #b45309;
+      box-shadow: 0 2px 5px rgba(180, 83, 9, 0.1);
     }
 
     /* 必須提出バッジ（青系） */
@@ -436,7 +434,6 @@
       body {
         padding: 16px 8px;
       }
-      /* ▼ 追加：スマホ表示のときはヘッダーを左揃えにする */
       .header-area { text-align: left; }
       
       .container {
@@ -471,7 +468,7 @@
       }
     }
 
-    /* ▼ 追加：テーマ切り替えボタンのスタイル */
+    /* テーマ切り替えボタンのスタイル */
     .theme-toggle-btn {
       position: absolute;
       top: 24px;
@@ -492,13 +489,11 @@
     .theme-toggle-btn:hover {
       background: var(--border-color);
     }
-    /* ▼ 追加：SVGアイコンのサイズ調整 */
     .theme-toggle-btn svg {
       width: 16px;
       height: 16px;
       fill: currentColor;
     }
-    /* コンテナを相対位置にしてボタンを配置できるようにする */
     .container {
       position: relative;
     }
@@ -506,9 +501,7 @@
 </head>
 <body>
   <div class="container">
-    <!-- ▼ 追加：テーマ切り替えボタン -->
     <button id="theme-toggle" class="theme-toggle-btn">
-      <!-- 月のアイコン（初期状態用） -->
       <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       <span id="theme-text">ダークモード</span>
     </button>
@@ -566,6 +559,14 @@
       return (month >= 4 && month <= 9) ? '前期' : '後期';
     }
 
+    // 動画ファイルの拡張子かどうかを判定する関数
+    function isVideoFile(filename) {
+      if (!filename) return false;
+      const videoExtensions = ['.mp4', '.mov', '.avi', '.m4v', '.wmv', '.mkv', '.webm', '.flv'];
+      const lower = filename.toLowerCase();
+      return videoExtensions.some(ext => lower.endsWith(ext));
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('search-btn').addEventListener('click', performSearch);
       document.getElementById('keyword').addEventListener('keypress', function(e) {
@@ -574,19 +575,15 @@
         }
       });
 
-      // ▼ 修正：システム設定または保存された設定に基づいてテーマを初期化
       const themeToggleBtn = document.getElementById('theme-toggle');
       const themeIcon = document.getElementById('theme-icon');
       const themeText = document.getElementById('theme-text');
 
-      // アイコンのパス定義（月と太陽）
       const moonPath = "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z";
       const sunPath = "M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z";
 
-      // 1. 保存された設定を優先、なければOS/ブラウザのシステム設定を取得
       const savedTheme = localStorage.getItem('theme');
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      
       const isInitialDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
 
       if (isInitialDark) {
@@ -599,7 +596,6 @@
         themeText.textContent = 'ダークモード';
       }
 
-      // 2. ボタンをクリックしたときの切り替え処理
       themeToggleBtn.addEventListener('click', function() {
         document.body.classList.toggle('dark-mode');
         const isDarkMode = document.body.classList.contains('dark-mode');
@@ -615,27 +611,23 @@
         }
       });
 
-      // ▼ 追加：前期・後期・すべてのタブボタンをクリックしたときの処理
       const filterBtns = document.querySelectorAll('.filter-btn');
       filterBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-          // すべてのボタンから active クラスを外し、押されたボタンに付与
           filterBtns.forEach(b => b.classList.remove('active'));
           this.classList.add('active');
-
-          // 現在のフィルター用語を更新して再描画
           currentFilter = this.getAttribute('data-term');
           renderTable();
         });
       });
 
-      // 初期状態で「後期」ボタン（またはデフォルトのボタン）に active を付与
       filterBtns.forEach(btn => {
         if (btn.getAttribute('data-term') === currentFilter) {
           btn.classList.add('active');
         }
       });
     });
+
     function performSearch() {
       const keyword = document.getElementById('keyword').value.trim();
       if (!keyword) {
@@ -647,7 +639,6 @@
       document.getElementById('result-table').style.display = 'none';
       document.getElementById('mobile-card-container').innerHTML = '';
 
-      // ★ここにGoogle Apps Scriptで発行した「ウェブアプリのURL」を貼り付けてください
       const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
       fetch(GAS_URL + '?keyword=' + encodeURIComponent(keyword))
@@ -666,7 +657,6 @@
       renderTable();
     }
 
-    // 提出期限が過ぎているかチェックする関数
     function isDeadlinePassed(deadlineStr) {
       if (!deadlineStr || deadlineStr === '-') return false;
       const deadlineDate = new Date(deadlineStr);
@@ -681,9 +671,9 @@
 
       const filtered = allResults.filter(r => {
         if (currentFilter === 'すべて') {
-          return true; // 「すべて」が選択されている場合は前期・後期問わずすべて表示
+          return true;
         }
-        return r.term === currentFilter; // 「前期」または「後期」の場合は一致するものだけ
+        return r.term === currentFilter;
       });
 
       if (filtered.length === 0) {
@@ -698,9 +688,18 @@
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
         let isSub = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
-        let statusHtml = isSub ? '<span class="badge status-submitted">提出済み</span>' : '<span class="badge status-unsubmitted">未提出</span>';
         
-        // 期限超過 かつ 未提出 の判定
+        let statusHtml = '';
+        if (isSub) {
+          if (r.fileName && !isVideoFile(r.fileName)) {
+            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
+          } else {
+            statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          }
+        } else {
+          statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
+        }
+        
         let isOverdue = !isSub && isDeadlinePassed(r.deadline);
         let deadlineStyle = isOverdue ? 'color: #dc2626; font-weight: 700;' : 'color: var(--text-muted);';
 
@@ -732,7 +731,17 @@
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
         let isSub = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
-        let statusHtml = isSub ? '<span class="badge status-submitted">提出済み</span>' : '<span class="badge status-unsubmitted">未提出</span>';
+        
+        let statusHtml = '';
+        if (isSub) {
+          if (r.fileName && !isVideoFile(r.fileName)) {
+            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
+          } else {
+            statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          }
+        } else {
+          statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
+        }
 
         let isOverdue = !isSub && isDeadlinePassed(r.deadline);
         let deadlineClass = isOverdue ? 'deadline-overdue' : '';
