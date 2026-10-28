@@ -114,17 +114,19 @@
       transform: scale(0.98);
     }
 
+    /* 普段は非表示にしておき、表示させたいときはコメントアウトを外してください */
     .filter-tabs {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
+      display: none !important;
     }
+
+    /* ▼ 表示させたいときは上の非表示をコメントアウトし、こちらのコメントアウトを外します
+    .filter-tabs {
+      display: flex !important;
+      gap: 8px;
+      margin-bottom: 24px;
+      justify-content: center;
+    }
+    */
 
     #loading {
       display: none;
