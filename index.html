@@ -435,7 +435,7 @@
       document.getElementById('mobile-card-container').innerHTML = '';
 
       // ★ここにGoogle Apps Scriptで発行した「ウェブアプリのURL」を貼り付けてください
-      const GAS_URL = 'https://script.google.com/macros/s/あなたのウェブアプリID/exec';
+      const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
       fetch(GAS_URL + '?keyword=' + encodeURIComponent(keyword))
         .then(response => response.json())
