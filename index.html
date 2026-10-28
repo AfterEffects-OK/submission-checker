@@ -434,10 +434,17 @@
       document.getElementById('result-table').style.display = 'none';
       document.getElementById('mobile-card-container').innerHTML = '';
 
-      google.script.run
-        .withSuccessHandler(onSuccess)
-        .withFailureHandler(onFailure)
-        .searchSubmissions(keyword);
+      // ★ここにGoogle Apps Scriptで発行した「ウェブアプリのURL」を貼り付けてください
+      const GAS_URL = 'https://script.google.com/macros/s/あなたのウェブアプリID/exec';
+
+      fetch(GAS_URL + '?keyword=' + encodeURIComponent(keyword))
+        .then(response => response.json())
+        .then(results => {
+          onSuccess(results);
+        })
+        .catch(error => {
+          onFailure(error);
+        });
     }
 
     function onSuccess(results) {
