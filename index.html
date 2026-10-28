@@ -20,6 +20,16 @@
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     }
 
+    /* ▼ 追加：ダークモード時の配色設定 */
+    body.dark-mode {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --primary-light: #064e3b;
+    }
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg-color);
@@ -399,10 +409,49 @@
         display: flex !important;
       }
     }
+
+    /* ▼ 追加：テーマ切り替えボタンのスタイル */
+    .theme-toggle-btn {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--border-color);
+    }
+    /* ▼ 追加：SVGアイコンのサイズ調整 */
+    .theme-toggle-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+    /* コンテナを相対位置にしてボタンを配置できるようにする */
+    .container {
+      position: relative;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- ▼ 追加：テーマ切り替えボタン -->
+    <button id="theme-toggle" class="theme-toggle-btn">
+      <!-- 月のアイコン（初期状態用） -->
+      <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <span id="theme-text">ダークモード</span>
+    </button>
+
     <div class="header-area">
       <h2>課題提出状況 検索システム</h2>
       <p class="subtitle">あなたの氏名を入力して提出状況を確認します。</p>
@@ -461,6 +510,38 @@
       document.getElementById('keyword').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
           performSearch();
+        }
+      });
+
+      // ▼ 追加：ダークモード切り替えの処理
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      const themeIcon = document.getElementById('theme-icon');
+      const themeText = document.getElementById('theme-text');
+
+      // アイコンのパス定義（月と太陽）
+      const moonPath = "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z";
+      const sunPath = "M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z";
+
+      // 保存されたテーマ設定があれば適用
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.innerHTML = `<path d="${sunPath}"/>`;
+        themeText.textContent = 'ライトモード';
+      }
+
+      themeToggleBtn.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        
+        if (isDarkMode) {
+          themeIcon.innerHTML = `<path d="${sunPath}"/>`;
+          themeText.textContent = 'ライトモード';
+          localStorage.setItem('theme', 'dark');
+        } else {
+          themeIcon.innerHTML = `<path d="${moonPath}"/>`;
+          themeText.textContent = 'ダークモード';
+          localStorage.setItem('theme', 'light');
         }
       });
 
