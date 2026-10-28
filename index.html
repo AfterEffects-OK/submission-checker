@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>課題提出状況 検索システム</title>
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-hover: #047857;
+      --primary-light: #ecfdf5;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 40px 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1250px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      box-sizing: border-box;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .header-area {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    h2 {
+      margin: 0 0 8px 0;
+      color: var(--text-main);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    p.subtitle {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      background: #f1f5f9;
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    .search-box:focus-within {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-main);
+    }
+
+    input[type="text"]::placeholder {
+      color: #94a3b8;
+    }
+
+    button.search-btn {
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    }
+
+    button.search-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    button.search-btn:active {
+      transform: scale(0.98);
+    }
+
+    .filter-tabs {
+      display: none !important;
+    }
+
+    #loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-muted);
+      margin: 40px 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* PC用テーブルコンテナ */
+    .table-container {
+      width: 100%;
+      overflow-x: hidden;
+      margin-top: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+
+    th, td {
+      padding: 18px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    th {
+      background-color: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    /* スマホ用カードリスト */
+    #mobile-card-container {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .mobile-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .mobile-card-student {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .mobile-card-upper {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .mobile-card-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .mobile-card-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: right;
+      white-space: nowrap;
+      line-height: 1.5;
+    }
+
+    .mobile-card-lower {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .mobile-card-lecture {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* 提出状況バッジ */
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      border-radius: 30px;
+      letter-spacing: 0.02em;
+    }
+
+    .status-submitted {
+      background-color: #dcfce7;
+      color: #166534;
+      box-shadow: 0 2px 5px rgba(22, 101, 52, 0.1);
+    }
+
+    .status-unsubmitted {
+      background-color: #fee2e2;
+      color: #991b1b;
+      box-shadow: 0 2px 5px rgba(153, 27, 27, 0.1);
+    }
+
+    /* 必須提出バッジ（青系） */
+    .req-badge-required {
+      display: inline-block;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      background-color: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+
+    /* 任意提出バッジ（グレー系） */
+    .req-badge-optional {
+      display: inline-block;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      background-color: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* 期限超過・未提出時の赤文字強調スタイル */
+    .deadline-overdue {
+      color: #dc2626 !important;
+      font-weight: 700;
+    }
+
+    .folder-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .folder-link:hover {
+      text-decoration: underline;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 60px 16px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    /* レスポンシブ切替（画面幅 768px 以下でスマホ用カード表示に切り替え） */
+    @media (max-width: 768px) {
+      body {
+        padding: 16px 8px;
+      }
+      .container {
+        padding: 24px 16px;
+        border-radius: 12px;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+      }
+      h2 {
+        font-size: 22px;
+      }
+      .search-box {
+        flex-direction: column;
+        background: #fff;
+        padding: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      }
+      input[type="text"] {
+        padding: 12px 12px;
+      }
+      button.search-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 8px;
+      }
+      .table-container {
+        display: none !important;
+      }
+      #mobile-card-container {
+        display: flex !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-area">
+      <h2>課題提出状況 検索システム</h2>
+      <p class="subtitle">あなたの氏名を入力して提出状況を確認します。</p>
+    </div>
+    
+    <div class="search-box">
+      <input type="text" id="keyword" placeholder="例: 山田太郎">
+      <button id="search-btn" class="search-btn">検索する</button>
+    </div>
+
+    <div id="filter-container" class="filter-tabs">
+      <button class="filter-btn" data-term="すべて">すべて</button>
+      <button class="filter-btn" data-term="前期">前期</button>
+      <button class="filter-btn" data-term="後期" id="default-term-btn">後期</button>
+    </div>
+    
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>検索中...</span>
+    </div>
+    
+    <!-- PC用テーブル -->
+    <div id="result-container" class="table-container">
+      <table id="result-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>学生氏名</th>
+            <th>課題タイトル</th>
+            <th>提出期限</th>
+            <th>区分</th>
+            <th>提出フォルダ</th>
+            <th>提出状況</th>
+            <th>講義名</th>
+          </tr>
+        </thead>
+        <tbody id="result-body">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- スマホ用 2段カードリスト -->
+    <div id="mobile-card-container"></div>
+  </div>
+
+  <script>
+    let allResults = [];
+    let currentFilter = getDefaultTerm();
+
+    function getDefaultTerm() {
+      const month = new Date().getMonth() + 1;
+      return (month >= 4 && month <= 9) ? '前期' : '後期';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('search-btn').addEventListener('click', performSearch);
+      document.getElementById('keyword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          performSearch();
+        }
+      });
+    });
+
+    function performSearch() {
+      const keyword = document.getElementById('keyword').value.trim();
+      if (!keyword) {
+        alert('検索キーワードを入力してください。');
+        return;
+      }
+
+      document.getElementById('loading').style.display = 'flex';
+      document.getElementById('result-table').style.display = 'none';
+      document.getElementById('mobile-card-container').innerHTML = '';
+
+      google.script.run
+        .withSuccessHandler(onSuccess)
+        .withFailureHandler(onFailure)
+        .searchSubmissions(keyword);
+    }
+
+    function onSuccess(results) {
+      document.getElementById('loading').style.display = 'none';
+      allResults = results || [];
+      renderTable();
+    }
+
+    // 提出期限が過ぎているかチェックする関数
+    function isDeadlinePassed(deadlineStr) {
+      if (!deadlineStr || deadlineStr === '-') return false;
+      const deadlineDate = new Date(deadlineStr);
+      if (isNaN(deadlineDate.getTime())) return false;
+      return new Date() > deadlineDate;
+    }
+
+    function renderTable() {
+      const table = document.getElementById('result-table');
+      const tbody = document.getElementById('result-body');
+      const cardContainer = document.getElementById('mobile-card-container');
+
+      const filtered = allResults.filter(r => {
+        return r.term === currentFilter;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-message">該当するデータが見つかりませんでした。</td></tr>';
+        table.style.display = 'table';
+        cardContainer.innerHTML = '<div class="empty-message">該当するデータが見つかりませんでした。</div>';
+        return;
+      }
+
+      // 1. PC用テーブルのHTML生成
+      let tableHtml = '';
+      for (let i = 0; i < filtered.length; i++) {
+        let r = filtered[i];
+        let isSub = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        let statusHtml = isSub ? '<span class="badge status-submitted">提出済み</span>' : '<span class="badge status-unsubmitted">未提出</span>';
+        
+        // 期限超過 かつ 未提出 の判定
+        let isOverdue = !isSub && isDeadlinePassed(r.deadline);
+        let deadlineClass = isOverdue ? 'deadline-overdue' : '';
+        let deadlineStyle = isOverdue ? 'color: #dc2626; font-weight: 700;' : 'color: var(--text-muted);';
+
+        let reqText = escapeHtml(r.requirement);
+        let reqClass = (reqText.includes('必') || reqText.includes('必須')) ? 'req-badge-required' : 'req-badge-optional';
+        let reqHtml = '<span class="' + reqClass + '">' + reqText + '</span>';
+
+        let folderHtml = '-';
+        if (r.folderId && r.folderId !== '-') {
+          let fUrl = 'https://drive.google.com/drive/folders/' + r.folderId;
+          folderHtml = '<a href="' + fUrl + '" target="_blank" class="folder-link">フォルダを開く ↗</a>';
+        }
+
+        tableHtml += '<tr>';
+        tableHtml += '<td style="font-weight: 700;">' + escapeHtml(r.studentName) + '</td>';
+        tableHtml += '<td style="font-weight: 600;">' + escapeHtml(r.kadaiName) + '</td>';
+        tableHtml += '<td style="' + deadlineStyle + '">' + escapeHtml(r.deadline) + '</td>';
+        tableHtml += '<td>' + reqHtml + '</td>';
+        tableHtml += '<td>' + folderHtml + '</td>';
+        tableHtml += '<td>' + statusHtml + '</td>';
+        tableHtml += '<td style="font-weight: 600;">' + escapeHtml(r.submitDate) + '</td>';
+        tableHtml += '</tr>';
+      }
+      tbody.innerHTML = tableHtml;
+      table.style.display = 'table';
+
+      // 2. スマホ用 2段カードリストのHTML生成
+      let cardHtml = '';
+      for (let i = 0; i < filtered.length; i++) {
+        let r = filtered[i];
+        let isSub = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        let statusHtml = isSub ? '<span class="badge status-submitted">提出済み</span>' : '<span class="badge status-unsubmitted">未提出</span>';
+
+        let isOverdue = !isSub && isDeadlinePassed(r.deadline);
+        let deadlineClass = isOverdue ? 'deadline-overdue' : '';
+
+        let reqText = escapeHtml(r.requirement);
+        let reqClass = (reqText.includes('必') || reqText.includes('必須')) ? 'req-badge-required' : 'req-badge-optional';
+        let reqHtml = '<span class="' + reqClass + '">' + reqText + '</span>';
+
+        cardHtml += '<div class="mobile-card">';
+        cardHtml += '<div class="mobile-card-student">👤 ' + escapeHtml(r.studentName) + '</div>';
+        
+        cardHtml += '<div class="mobile-card-upper">';
+        cardHtml += '<div class="mobile-card-title">' + escapeHtml(r.kadaiName) + '</div>';
+        cardHtml += '<div class="mobile-card-meta"><span class="' + deadlineClass + '">提出期限：' + escapeHtml(r.deadline) + '</span><br><span style="display:inline-block; margin-top:6px;">' + reqHtml + '</span></div>';
+        cardHtml += '</div>';
+
+        cardHtml += '<div class="mobile-card-lower">';
+        cardHtml += '<div class="mobile-card-lecture">📚 ' + escapeHtml(r.submitDate) + '</div>';
+        cardHtml += '<div>' + statusHtml + '</div>';
+        cardHtml += '</div>';
+
+        cardHtml += '</div>';
+      }
+      cardContainer.innerHTML = cardHtml;
+    }
+
+    function onFailure(error) {
+      document.getElementById('loading').style.display = 'none';
+      alert('エラーが発生しました: ' + error.message);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
