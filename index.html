@@ -20,7 +20,7 @@
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     }
 
-    /* ▼ 追加：ダークモード時の配色設定 */
+    /* ▼ ダークモード時の配色設定 */
     body.dark-mode {
       --bg-color: #0f172a;
       --card-bg: #1e293b;
@@ -30,7 +30,6 @@
       --primary-light: #064e3b;
     }
 
-    /* ▼ 追加：ダークモード時のテーブル・入力欄の背景色の補正 */
     body.dark-mode .table-container {
       background: var(--card-bg);
       border-color: var(--border-color);
@@ -96,6 +95,7 @@
       box-shadow: var(--shadow);
       box-sizing: border-box;
       border: 1px solid rgba(226, 232, 240, 0.8);
+      position: relative;
     }
 
     .header-area {
@@ -172,12 +172,10 @@
       transform: scale(0.98);
     }
 
-    /* 【前期・後期のボタン】普段は非表示にしておき、表示させたいときはコメントアウトを外してください */
     .filter-tabs {
       display: none !important;
     }
 
-    /* 各タブボタンのデザイン（検索ボタンや周りのトーンに統一） */
     .filter-btn {
       padding: 10px 20px;
       font-size: 14px;
@@ -195,7 +193,6 @@
       color: var(--text-main);
     }
 
-    /* 選択中（アクティブ）のボタンのデザイン（緑色のメインカラーに統一） */
     .filter-btn.active {
       background-color: var(--primary);
       color: white;
@@ -227,7 +224,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* PC用テーブルコンテナ */
     .table-container {
       width: 100%;
       overflow-x: hidden;
@@ -268,12 +264,10 @@
       background-color: #f8fafc;
     }
 
-    /* 特定の列をセンタリングするスタイル */
     th.col-center, td.col-center {
       text-align: center !important;
     }
 
-    /* スマホ用カードリスト */
     #mobile-card-container {
       display: none;
       flex-direction: column;
@@ -339,7 +333,6 @@
       color: var(--text-main);
     }
     
-    /* ▼ スマホカード内のSVGアイコンサイズ調整 */
     .mobile-card-student svg,
     .mobile-card-lecture svg {
       width: 14px;
@@ -349,7 +342,6 @@
       margin-right: 6px;
     }
 
-    /* 提出状況バッジ */
     .badge {
       display: inline-block;
       padding: 6px 14px;
@@ -371,14 +363,12 @@
       box-shadow: 0 2px 5px rgba(153, 27, 27, 0.1);
     }
 
-    /* 評価不能ファイル用バッジ（黄みのある警告色） */
     .status-invalid {
       background-color: #fef3c7;
       color: #b45309;
       box-shadow: 0 2px 5px rgba(180, 83, 9, 0.1);
     }
 
-    /* 必須提出バッジ（青系） */
     .req-badge-required {
       display: inline-block;
       padding: 5px 12px;
@@ -390,7 +380,6 @@
       border: 1px solid #bae6fd;
     }
 
-    /* 任意提出バッジ（グレー系） */
     .req-badge-optional {
       display: inline-block;
       padding: 5px 12px;
@@ -402,7 +391,6 @@
       border: 1px solid #e2e8f0;
     }
 
-    /* 期限超過・未提出時の赤文字強調スタイル */
     .deadline-overdue {
       color: #dc2626 !important;
       font-weight: 700;
@@ -429,7 +417,6 @@
       font-weight: 500;
     }
 
-    /* レスポンシブ切替（画面幅 768px 以下でスマホ用カード表示に切り替え） */
     @media (max-width: 768px) {
       body {
         padding: 16px 8px;
@@ -468,7 +455,6 @@
       }
     }
 
-    /* テーマ切り替えボタンのスタイル */
     .theme-toggle-btn {
       position: absolute;
       top: 24px;
@@ -493,9 +479,6 @@
       width: 16px;
       height: 16px;
       fill: currentColor;
-    }
-    .container {
-      position: relative;
     }
   </style>
 </head>
@@ -559,16 +542,17 @@
       return (month >= 4 && month <= 9) ? '前期' : '後期';
     }
 
-    // 動画ファイルの拡張子かどうかを判定する関数（拡張子がない場合もfalse＝評価不能にする）
-    function isVideoFile(filename) {
+    // ファイル名の最後の4文字分（例: .mp4 など）が動画拡張子リストに含まれているかチェックする関数
+    function hasValidVideoExtension(filename) {
       if (!filename) return false;
-      const lower = String(filename).toLowerCase();
+      const lower = String(filename).trim().toLowerCase();
+      if (lower.length < 4) return false;
       
-      // ファイル名にドット（.）が含まれていない（＝拡張子がない）場合は動画とみなさない
-      if (!lower.includes('.')) return false;
-
-      const videoExtensions = ['.mp4', '.mov', '.avi', '.m4v', '.wmv', '.mkv', '.webm', '.flv'];
-      return videoExtensions.some(ext => lower.endsWith(ext));
+      // 最後の4文字を取得（例: ".mp4", ".mov" など）
+      const last4 = lower.slice(-4);
+      const validExtensions = ['.mp4', '.mov', '.avi', '.m4v', '.wmv', '.mkv', '.webm', '.flv'];
+      
+      return validExtensions.includes(last4);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -691,14 +675,25 @@
       let tableHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
-        let isSub = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
         
+        // 元の「課題提出」シートのフラグがTRUEかどうか
+        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        
+        // 提出済み判定の全体
+        let isSub = isOriginalSubmitted; // ※バックエンドでサブフォルダ自動照合も含んだ判定結果になっている前提
+
         let statusHtml = '';
         if (isSub) {
-          if (r.fileName && !isVideoFile(r.fileName)) {
-            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
-          } else {
+          // 条件：フラグがTRUEのときは手動確認済みのため無条件で「提出済み」
+          if (isOriginalSubmitted) {
             statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          } else {
+            // FALSE（自動照合など）の場合のみ、ファイル名の最後の4文字の拡張子をチェック
+            if (!hasValidVideoExtension(r.fileName)) {
+              statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
+            } else {
+              statusHtml = '<span class="badge status-submitted">提出済み</span>';
+            }
           }
         } else {
           statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
@@ -734,14 +729,20 @@
       let cardHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
-        let isSub = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
         
+        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        let isSub = isOriginalSubmitted;
+
         let statusHtml = '';
         if (isSub) {
-          if (r.fileName && !isVideoFile(r.fileName)) {
-            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
-          } else {
+          if (isOriginalSubmitted) {
             statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          } else {
+            if (!hasValidVideoExtension(r.fileName)) {
+              statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
+            } else {
+              statusHtml = '<span class="badge status-submitted">提出済み</span>';
+            }
           }
         } else {
           statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
