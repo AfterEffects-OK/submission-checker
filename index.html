@@ -128,6 +128,32 @@
       justify-content: center;
     }
 
+    /* 各タブボタンのデザイン（検索ボタンや周りのトーンに統一） */
+    .filter-btn {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      background-color: #f1f5f9;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      background-color: #e2e8f0;
+      color: var(--text-main);
+    }
+
+    /* 選択中（アクティブ）のボタンのデザイン（緑色のメインカラーに統一） */
+    .filter-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+    }
+
     #loading {
       display: none;
       align-items: center;
