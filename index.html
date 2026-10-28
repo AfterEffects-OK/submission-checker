@@ -684,11 +684,11 @@
 
         let statusHtml = '';
         if (isSub) {
-          // 条件：フラグがTRUEのときは手動確認済みのため無条件で「提出済み」
-          if (isOriginalSubmitted) {
+          // 課題提出シートのフラグが TRUE（手動確認済み）のときは無条件で「提出済み」
+          if (r.isManualVerified === true) {
             statusHtml = '<span class="badge status-submitted">提出済み</span>';
           } else {
-            // FALSE（自動照合など）の場合のみ、ファイル名の最後の4文字の拡張子をチェック
+            // FALSEのときはファイル名の末尾4文字が動画拡張子かどうかをチェック
             if (!hasValidVideoExtension(r.fileName)) {
               statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
             } else {
