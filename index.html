@@ -437,8 +437,28 @@
           performSearch();
         }
       });
-    });
 
+      // ▼ 追加：前期・後期・すべてのタブボタンをクリックしたときの処理
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          // すべてのボタンから active クラスを外し、押されたボタンに付与
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+
+          // 現在のフィルター用語を更新して再描画
+          currentFilter = this.getAttribute('data-term');
+          renderTable();
+        });
+      });
+
+      // 初期状態で「後期」ボタン（またはデフォルトのボタン）に active を付与
+      filterBtns.forEach(btn => {
+        if (btn.getAttribute('data-term') === currentFilter) {
+          btn.classList.add('active');
+        }
+      });
+    });
     function performSearch() {
       const keyword = document.getElementById('keyword').value.trim();
       if (!keyword) {
