@@ -486,7 +486,6 @@
         
         // 期限超過 かつ 未提出 の判定
         let isOverdue = !isSub && isDeadlinePassed(r.deadline);
-        let deadlineClass = isOverdue ? 'deadline-overdue' : '';
         let deadlineStyle = isOverdue ? 'color: #dc2626; font-weight: 700;' : 'color: var(--text-muted);';
 
         let reqText = escapeHtml(r.requirement);
