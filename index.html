@@ -559,11 +559,15 @@
       return (month >= 4 && month <= 9) ? '前期' : '後期';
     }
 
-    // 動画ファイルの拡張子かどうかを判定する関数
+    // 動画ファイルの拡張子かどうかを判定する関数（拡張子がない場合もfalse＝評価不能にする）
     function isVideoFile(filename) {
       if (!filename) return false;
+      const lower = String(filename).toLowerCase();
+      
+      // ファイル名にドット（.）が含まれていない（＝拡張子がない）場合は動画とみなさない
+      if (!lower.includes('.')) return false;
+
       const videoExtensions = ['.mp4', '.mov', '.avi', '.m4v', '.wmv', '.mkv', '.webm', '.flv'];
-      const lower = filename.toLowerCase();
       return videoExtensions.some(ext => lower.endsWith(ext));
     }
 
