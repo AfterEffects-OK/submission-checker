@@ -503,7 +503,10 @@
       const cardContainer = document.getElementById('mobile-card-container');
 
       const filtered = allResults.filter(r => {
-        return r.term === currentFilter;
+        if (currentFilter === 'すべて') {
+          return true; // 「すべて」が選択されている場合は前期・後期問わずすべて表示
+        }
+        return r.term === currentFilter; // 「前期」または「後期」の場合は一致するものだけ
       });
 
       if (filtered.length === 0) {
