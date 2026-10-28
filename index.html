@@ -396,9 +396,9 @@
             <th>学生氏名</th>
             <th>課題タイトル</th>
             <th>提出期限</th>
-            <th>区分</th>
-            <th>提出フォルダ</th>
-            <th>提出状況</th>
+            <th class="col-center">区分</th>
+            <th class="col-center">提出フォルダ</th>
+            <th class="col-center">提出状況</th>
             <th>講義名</th>
           </tr>
         </thead>
@@ -508,9 +508,9 @@
         tableHtml += '<td style="font-weight: 700;">' + escapeHtml(r.studentName) + '</td>';
         tableHtml += '<td style="font-weight: 600;">' + escapeHtml(r.kadaiName) + '</td>';
         tableHtml += '<td style="' + deadlineStyle + '">' + escapeHtml(r.deadline) + '</td>';
-        tableHtml += '<td>' + reqHtml + '</td>';
-        tableHtml += '<td>' + folderHtml + '</td>';
-        tableHtml += '<td>' + statusHtml + '</td>';
+        tableHtml += '<td class="col-center">' + reqHtml + '</td>';
+        tableHtml += '<td class="col-center">' + folderHtml + '</td>';
+        tableHtml += '<td class="col-center">' + statusHtml + '</td>';
         tableHtml += '<td style="font-weight: 600;">' + escapeHtml(r.submitDate) + '</td>';
         tableHtml += '</tr>';
       }
