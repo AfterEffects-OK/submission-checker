@@ -88,34 +88,34 @@
     </div>
 
     <script>
-        // バックエンド（GAS）のWebアプリURL（ご自身のURLに書き換えてください）
+        // バックエンド（GAS）のWebアプリURL
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
+
+        let allTasksData = []; // 取得した全タスクデータを保持する変数
+        let currentFilter = 'すべて'; // 現在選択されているフィルター
 
         // ページ読み込み時に自動で全データを取得
         window.addEventListener('DOMContentLoaded', function() {
-            // キーワードを空（または全件取得用のパラメータ）でリクエスト
-            fetch(GAS_URL + '?keyword=') 
+            fetch(GAS_URL + '?keyword=')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('loading').style.display = 'none';
-                    generateDashboard(data);
+                    processData(data);
                 })
                 .catch(error => {
                     document.getElementById('loading').innerHTML = 'データ取得エラーが発生しました: ' + error.message;
                 });
         });
 
-        function generateDashboard(results) {
+        // データをグループ化して保持し、ボタンとテーブルを初期描画
+        function processData(results) {
             if (!results || results.length === 0) {
                 document.getElementById('loading').innerHTML = 'データが見つかりませんでした。';
                 return;
             }
 
-            // 課題タイトルごとにデータをグループ化する
             const taskMap = {};
-
             results.forEach(r => {
-                // キーを「講義名_課題名」にして一意にまとめる
                 const key = r.submitDate + '_' + r.kadaiName;
                 if (!taskMap[key]) {
                     taskMap[key] = {
@@ -130,20 +130,105 @@
 
                 taskMap[key].totalCount++;
 
-                // 提出済み判定
                 let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
                 if (isOriginalSubmitted) {
                     taskMap[key].submittedCount++;
                 }
             });
 
-            // テーブルに描画
+            allTasksData = Object.values(taskMap);
+
+            // フィルターボタンを自動生成
+            generateFilterButtons(allTasksData);
+
+            // テーブルを描画
+            renderDashboard(allTasksData);
+        }
+
+        // 課題（または講義名）ごとのボタンを自動生成する関数
+        function generateFilterButtons(tasks) {
+            const filterContainer = document.getElementById('filter-buttons');
+            
+            // 「すべて」ボタンを残して他をクリア
+            filterContainer.innerHTML = '<button class="filter-btn active" data-filter="すべて" onclick="filterTable(\'すべて\', this)">すべて</button>';
+
+            // 課題名の一覧からボタンを生成
+            tasks.forEach(task => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.dataset.filter = task.kadaiName;
+                btn.textContent = task.kadaiName;
+                btn.onclick = function() {
+                    filterTable(task.kadaiName, this);
+                };
+                filterContainer.appendChild(btn);
+            });
+        }
+
+        // ボタンがクリックされたときの絞り込み処理
+        function filterTable(targetKadai, clickedBtn) {
+            currentFilter = targetKadai;
+
+            // アクティブなボタンのスタイル切り替え
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = '#fff';
+                btn.style.color = 'var(--text-main)';
+                btn.style.borderColor = 'var(--border-color)';
+            });
+            clickedBtn.classList.add('active');
+            clickedBtn.style.background = 'var(--primary)';
+            clickedBtn.style.color = '#fff';
+            clickedBtn.style.borderColor = 'var(--primary)';
+
+            // データのフィルタリング
+            if (targetKadai === 'すべて') {
+                renderDashboard(allTasksData);
+            } else {
+                const filtered = allTasksData.filter(t => t.kadaiName === targetKadai);
+                renderDashboard(filtered);
+            }
+        }
+
+        // 共通のボタンスタイルを適用するためのCSSをHTML内に追加しておくための補助
+        // （見た目をきれいにするスタイル）
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = `
+            .filter-btn {
+                padding: 8px 16px;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                background: #fff;
+                color: var(--text-main);
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+                transition: all 0.2s ease;
+            }
+            .filter-btn.active {
+                background: var(--primary);
+                color: #fff;
+                border-color: var(--primary);
+            }
+            .filter-btn:hover {
+                border-color: var(--primary);
+            }
+        `;
+        document.head.appendChild(styleTag);
+
+        // テーブルに描画する関数
+        function renderDashboard(tasks) {
             const tbody = document.getElementById('dashboard-body');
             let html = '';
 
-            Object.values(taskMap).forEach(task => {
+            if (tasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">該当するデータが見つかりませんでした。</td></tr>';
+                document.getElementById('dashboard-table').style.display = 'table';
+                return;
+            }
+
+            tasks.forEach(task => {
                 const percentage = task.totalCount > 0 ? Math.round((task.submittedCount / task.totalCount) * 100) : 0;
-                
                 let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: #64748b;';
 
                 html += '<tr>';
