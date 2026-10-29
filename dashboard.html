@@ -65,7 +65,7 @@
         h2 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
         p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
 
-        /* モード切り替えボタン */
+        /* モード切り替えボタン（index.html 準拠） */
         .theme-toggle-btn {
             background: var(--filter-bg);
             border: 1px solid var(--border-color);
@@ -84,7 +84,7 @@
             border-color: var(--primary);
         }
 
-        /* プルダウンフィルターエリア */
+        /* プルダウンフィルターエリア（課題タイトルを左側に配置） */
         .filter-section {
             display: flex;
             gap: 16px;
@@ -355,23 +355,23 @@
                 <h2>課題別 提出状況ダッシュボード</h2>
                 <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出カードが展開されます。</p>
             </div>
-            <!-- モード切り替えボタン -->
+            <!-- モード切り替えボタン（index.html 準拠） -->
             <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="表示モード切替">
-                <span id="theme-icon">🌙</span> <span id="theme-text">ダークモード</span>
+                <span id="theme-text">ライトモード</span>
             </button>
         </div>
 
-        <!-- プルダウンによる絞り込みエリア -->
+        <!-- プルダウンによる絞り込みエリア（課題タイトルを左側に配置） -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="lecture-select">科目名 / 講義名</label>
-                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
+                <label for="kadai-select">課題タイトル</label>
+                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="kadai-select">課題タイトル</label>
-                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
+                <label for="lecture-select">科目名 / 講義名</label>
+                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
@@ -416,7 +416,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             updateThemeButtonUI();
 
-            // システム(OS)のカラーテーマ変更をリアルタイム検知する場合
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
                 if (!localStorage.getItem('theme')) {
                     document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
@@ -436,16 +435,13 @@
 
         function updateThemeButtonUI() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
-            const icon = document.getElementById('theme-icon');
             const text = document.getElementById('theme-text');
-            if (!icon || !text) return;
+            if (!text) return;
 
             if (currentTheme === 'dark') {
-                icon.textContent = '☀️';
-                text.textContent = 'ライトモード';
+                text.textContent = '☀️ ライトモード';
             } else {
-                icon.textContent = '🌙';
-                text.textContent = 'ダークモード';
+                text.textContent = '🌙 ダークモード';
             }
         }
         // --------------------------------------------------------
@@ -517,6 +513,7 @@
             const currentLecture = lectureSelect.value;
             const currentKadai = kadaiSelect.value;
 
+            // 科目セレクトの更新
             const lectures = [...new Set(allTasksData.map(t => t.lecture))].sort();
             lectureSelect.innerHTML = '<option value="すべて">すべて</option>';
             lectures.forEach(lec => {
@@ -527,6 +524,7 @@
             });
             lectureSelect.value = lectures.includes(currentLecture) ? currentLecture : 'すべて';
 
+            // 課題セレクトの更新（科目で絞り込み可能）
             const filteredByLecture = (lectureSelect.value === 'すべて') 
                 ? allTasksData 
                 : allTasksData.filter(t => t.lecture === lectureSelect.value);
