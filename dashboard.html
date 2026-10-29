@@ -33,23 +33,101 @@
             border: 1px solid var(--border-color);
         }
         h2 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
-        p.subtitle { margin: 0 0 32px 0; color: var(--text-muted); font-size: 15px; }
-        
+        p.subtitle { margin: 0 0 24px 0; color: var(--text-muted); font-size: 15px; }
+
+        /* フィルターボタンエリア */
+        #filter-buttons {
+            margin-bottom: 24px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            color: var(--text-main);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .filter-btn:hover {
+            border-color: var(--primary);
+        }
+
         /* テーブルスタイル */
-        .table-container { width: 100%; overflow-x: auto; margin-top: 20px; border: 1px solid var(--border-color); border-radius: 12px; background: #fff; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 16px 20px; border-bottom: 1px solid var(--border-color); font-size: 15px; }
-        th { background-color: #f8fafc; color: var(--text-muted); font-weight: 700; font-size: 13px; }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 15px;
+        }
+        th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 13px;
+        }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background-color: #f8fafc; }
-        
+
         /* 進捗バーのスタイル */
-        .progress-bar-container { background: #e2e8f0; border-radius: 8px; overflow: hidden; height: 10px; width: 100px; display: inline-block; vertical-align: middle; margin-right: 8px; }
-        .progress-bar-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.4s ease; }
-        
-        #loading { display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--text-muted); margin: 40px 0; font-weight: 600; }
-        .spinner { width: 22px; height: 22px; border: 3px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .progress-bar-container {
+            background: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 10px;
+            width: 100px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .progress-bar-fill {
+            background: var(--primary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        #loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--text-muted);
+            margin: 40px 0;
+            font-weight: 600;
+        }
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -58,10 +136,9 @@
         <h2>課題別 提出状況ダッシュボード</h2>
         <p class="subtitle">すべての課題ごとの提出状況と提出率を一覧で確認します。</p>
 
-        <!-- ▼ 追加：フィルターボタンのエリア -->
-        <div id="filter-buttons" style="margin-bottom: 24px; display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="filter-btn active" data-filter="すべて" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--primary); color: #fff; cursor: pointer; font-weight: 600;">すべて</button>
-            <!-- ここに講義名などのボタンがJSで自動生成されるようにすると便利です -->
+        <!-- 課題名ごとのフィルターボタンが自動でここに並びます -->
+        <div id="filter-buttons">
+            <button class="filter-btn active" data-filter="すべて" onclick="filterTable('すべて', this)">すべて</button>
         </div>
 
         <div id="loading">
@@ -88,11 +165,11 @@
     </div>
 
     <script>
-        // バックエンド（GAS）のWebアプリURL
+        // バックエンド（GAS）のWebアプリURL（既存のURLをそのまま使用）
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
-        let allTasksData = []; // 取得した全タスクデータを保持する変数
-        let currentFilter = 'すべて'; // 現在選択されているフィルター
+        let allTasksData = []; // 取得した全タスクデータを保持
+        let currentFilter = 'すべて';
 
         // ページ読み込み時に自動で全データを取得
         window.addEventListener('DOMContentLoaded', function() {
@@ -107,7 +184,7 @@
                 });
         });
 
-        // データをグループ化して保持し、ボタンとテーブルを初期描画
+        // データを課題ごとにグループ化して集計する関数
         function processData(results) {
             if (!results || results.length === 0) {
                 document.getElementById('loading').innerHTML = 'データが見つかりませんでした。';
@@ -138,21 +215,21 @@
 
             allTasksData = Object.values(taskMap);
 
-            // フィルターボタンを自動生成
+            // 課題ごとのフィルターボタンを生成
             generateFilterButtons(allTasksData);
 
             // テーブルを描画
             renderDashboard(allTasksData);
         }
 
-        // 課題（または講義名）ごとのボタンを自動生成する関数
+        // 課題名ごとのボタンを自動生成する関数
         function generateFilterButtons(tasks) {
             const filterContainer = document.getElementById('filter-buttons');
             
             // 「すべて」ボタンを残して他をクリア
             filterContainer.innerHTML = '<button class="filter-btn active" data-filter="すべて" onclick="filterTable(\'すべて\', this)">すべて</button>';
 
-            // 重複のない課題名のリストを作成してボタンを生成
+            // 重複のない課題名のリストを作成
             const uniqueKadaiNames = [...new Set(tasks.map(t => t.kadaiName))];
 
             uniqueKadaiNames.forEach(kadaiName => {
@@ -167,23 +244,17 @@
             });
         }
 
-        // ボタンがクリックされたときの絞り込み処理
+        // ボタンクリック時の絞り込み処理
         function filterTable(targetKadai, clickedBtn) {
             currentFilter = targetKadai;
 
-            // アクティブなボタンのスタイル切り替え
+            // ボタンのアクティブ状態を切り替え
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
-                btn.style.background = '#fff';
-                btn.style.color = 'var(--text-main)';
-                btn.style.borderColor = 'var(--border-color)';
             });
             clickedBtn.classList.add('active');
-            clickedBtn.style.background = 'var(--primary)';
-            clickedBtn.style.color = '#fff';
-            clickedBtn.style.borderColor = 'var(--primary)';
 
-            // データのフィルタリング
+            // データのフィルタリングと描画
             if (targetKadai === 'すべて') {
                 renderDashboard(allTasksData);
             } else {
@@ -192,33 +263,7 @@
             }
         }
 
-        // 共通のボタンスタイルを適用するためのCSSをHTML内に追加しておくための補助
-        // （見た目をきれいにするスタイル）
-        const styleTag = document.createElement('style');
-        styleTag.innerHTML = `
-            .filter-btn {
-                padding: 8px 16px;
-                border-radius: 8px;
-                border: 1px solid var(--border-color);
-                background: #fff;
-                color: var(--text-main);
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 14px;
-                transition: all 0.2s ease;
-            }
-            .filter-btn.active {
-                background: var(--primary);
-                color: #fff;
-                border-color: var(--primary);
-            }
-            .filter-btn:hover {
-                border-color: var(--primary);
-            }
-        `;
-        document.head.appendChild(styleTag);
-
-        // テーブルに描画する関数
+        // ダッシュボードのテーブルを描画する関数
         function renderDashboard(tasks) {
             const tbody = document.getElementById('dashboard-body');
             let html = '';
