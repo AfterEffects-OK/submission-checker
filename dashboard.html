@@ -16,13 +16,31 @@
             --border-color: #e2e8f0;
             --radius: 16px;
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            --filter-bg: #f8fafc;
+            --sub-bg: #ffffff;
         }
+
+        /* ダークモード時のカラー定義 */
+        [data-theme="dark"] {
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            --filter-bg: #0f172a;
+            --sub-bg: #1e293b;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
             padding: 40px 24px;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
         .container {
             max-width: 1250px;
@@ -32,9 +50,39 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        /* ヘッダーエリア（タイトルとテーマ切り替えボタン） */
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
         }
         h2 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
-        p.subtitle { margin: 0 0 24px 0; color: var(--text-muted); font-size: 15px; }
+        p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
+
+        /* モード切り替えボタン */
+        .theme-toggle-btn {
+            background: var(--filter-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .theme-toggle-btn:hover {
+            border-color: var(--primary);
+        }
 
         /* プルダウンフィルターエリア */
         .filter-section {
@@ -42,10 +90,11 @@
             gap: 16px;
             flex-wrap: wrap;
             margin-bottom: 24px;
-            background: #f8fafc;
+            background: var(--filter-bg);
             padding: 16px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
         .filter-group {
             display: flex;
@@ -63,13 +112,13 @@
             padding: 10px 14px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            background: #fff;
+            background: var(--card-bg);
             color: var(--text-main);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             outline: none;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
         }
         .filter-select:focus {
             border-color: var(--primary);
@@ -82,7 +131,8 @@
             margin-top: 20px;
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            background: #fff;
+            background: var(--card-bg);
+            transition: border-color 0.2s ease, background-color 0.2s ease;
         }
         table {
             width: 100%;
@@ -93,9 +143,10 @@
             padding: 16px 20px;
             border-bottom: 1px solid var(--border-color);
             font-size: 15px;
+            transition: border-color 0.2s ease;
         }
         th {
-            background-color: #f8fafc;
+            background-color: var(--filter-bg);
             color: var(--text-muted);
             font-weight: 700;
             font-size: 13px;
@@ -109,32 +160,33 @@
             transition: background-color 0.15s ease;
         }
         .clickable-row:hover td {
-            background-color: #f0fdf4;
+            background-color: rgba(5, 150, 105, 0.08);
         }
         .clickable-row.expanded td {
-            background-color: #ecfdf5;
+            background-color: rgba(5, 150, 105, 0.12);
             border-bottom: none;
         }
 
         /* 詳細展開行のスタイル */
         .detail-row {
             display: none;
-            background-color: #f8fafc;
+            background-color: var(--filter-bg);
         }
         .detail-row.active {
             display: table-row;
         }
         .detail-cell {
             padding: 0 20px 20px 20px !important;
-            background-color: #f8fafc;
+            background-color: var(--filter-bg);
             border-bottom: 1px solid var(--border-color);
         }
         .detail-box {
-            background: #ffffff;
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 20px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
         .detail-title {
             font-size: 13px;
@@ -158,34 +210,34 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.1s ease, border-color 0.15s ease;
+            transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
         
-        /* 提出済みカードの背景・枠線カラー（非常に薄い緑） */
+        /* 提出済みカード（非常に薄い緑） */
         .student-card.submitted {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
         }
         .student-card.submitted:hover {
-            border-color: #86efac;
+            border-color: rgba(16, 185, 129, 0.5);
         }
 
-        /* 未提出カードの背景・枠線カラー（非常に薄い赤） */
+        /* 未提出カード（非常に薄い赤） */
         .student-card.unsubmitted {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
         }
         .student-card.unsubmitted:hover {
-            border-color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.5);
         }
 
-        /* 評価不能カードの背景・枠線カラー（非常に薄い黄色） */
+        /* 評価不能カード（非常に薄い黄色） */
         .student-card.unknown {
-            background: #fefce8;
-            border: 1px solid #fef08a;
+            background: rgba(234, 179, 8, 0.08);
+            border: 1px solid rgba(234, 179, 8, 0.25);
         }
         .student-card.unknown:hover {
-            border-color: #fde047;
+            border-color: rgba(234, 179, 8, 0.5);
         }
 
         .student-card-name {
@@ -194,15 +246,14 @@
             color: var(--text-main);
             white-space: nowrap;
             margin-right: 6px;
-            /* 長い文字の場合に横幅を縮小してカード内に収める */
             transform-origin: left center;
             display: inline-block;
         }
 
-        /* 提出済み・未提出・評価不能のバッジ（濃い背景色 ＆ 淡い文字色） */
+        /* 提出済み・未提出・評価不能のバッジ */
         .badge-submitted {
-            background: #047857; /* 濃い緑 */
-            color: #ecfdf5;      /* 淡い文字色 */
+            background: #047857;
+            color: #ecfdf5;
             padding: 3px 8px;
             border-radius: 6px;
             font-size: 11px;
@@ -211,8 +262,8 @@
             flex-shrink: 0;
         }
         .badge-unsubmitted {
-            background: #b91c1c; /* 濃い赤 */
-            color: #fef2f2;      /* 淡い文字色 */
+            background: #b91c1c;
+            color: #fef2f2;
             padding: 3px 8px;
             border-radius: 6px;
             font-size: 11px;
@@ -221,8 +272,8 @@
             flex-shrink: 0;
         }
         .badge-unknown {
-            background: #ca8a04; /* 黄色（濃いめ） */
-            color: #fefce8;      /* 淡い文字色 */
+            background: #ca8a04;
+            color: #fefce8;
             padding: 3px 8px;
             border-radius: 6px;
             font-size: 11px;
@@ -258,7 +309,7 @@
 
         /* 進捗バーのスタイル */
         .progress-bar-container {
-            background: #e2e8f0;
+            background: var(--border-color);
             border-radius: 8px;
             overflow: hidden;
             height: 10px;
@@ -299,8 +350,16 @@
 <body>
 
     <div class="container">
-        <h2>課題別 提出状況ダッシュボード</h2>
-        <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出カードが展開されます。</p>
+        <div class="header-flex">
+            <div>
+                <h2>課題別 提出状況ダッシュボード</h2>
+                <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出カードが展開されます。</p>
+            </div>
+            <!-- モード切り替えボタン -->
+            <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="表示モード切替">
+                <span id="theme-icon">🌙</span> <span id="theme-text">ダークモード</span>
+            </button>
+        </div>
 
         <!-- プルダウンによる絞り込みエリア -->
         <div class="filter-section">
@@ -342,6 +401,55 @@
     </div>
 
     <script>
+        // --- テーマ（ライト/ダークモード）初期化と切り替え処理 ---
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateThemeButtonUI();
+
+            // システム(OS)のカラーテーマ変更をリアルタイム検知する場合
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme')) {
+                    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+                    updateThemeButtonUI();
+                }
+            });
+        });
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeButtonUI();
+        }
+
+        function updateThemeButtonUI() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+            if (!icon || !text) return;
+
+            if (currentTheme === 'dark') {
+                icon.textContent = '☀️';
+                text.textContent = 'ライトモード';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'ダークモード';
+            }
+        }
+        // --------------------------------------------------------
+
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
@@ -390,7 +498,7 @@
 
                 taskMap[key].students.push({
                     name: r.studentName,
-                    status: r.isSubmitted, // '提出済み', '未提出', '評価不能' などに対応できるようステータスを保持
+                    status: r.isSubmitted,
                     isSubmitted: isOriginalSubmitted,
                     fileName: r.fileName || '-'
                 });
@@ -464,7 +572,7 @@
 
             tasks.forEach((task, index) => {
                 const percentage = task.totalCount > 0 ? Math.round((task.submittedCount / task.totalCount) * 100) : 0;
-                let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: #64748b;';
+                let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: var(--text-muted);';
                 let formattedLecture = escapeHtml(task.lecture).replace(/\(/g, '<wbr>(').replace(/（/g, '<wbr>（');
 
                 const rowId = 'detail-row-' + index;
