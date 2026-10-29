@@ -498,24 +498,38 @@
       position: relative;
     }
 
-    /* ▼ フッター日本語切り替え クロスフェードエフェクト */
+    /* --- フッターテキストのホバーアニメーション --- */
     #journey-text {
-        position: relative;
-        display: inline-block;
-        min-height: 1.5em;
+        position: relative; /* ::after疑似要素を絶対配置するための基準 */
+        cursor: default; /* テキスト選択カーソルではなく、通常のカーソルを表示 */
     }
-    #journey-text span {
-        display: inline-block;
-        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-        opacity: 1;
-        transform: translateY(0);
+
+    #journey-text span,
+    #journey-text::after {
+        transition: opacity 0.4s ease-in-out; /* 透明度を滑らかに変化させる */
     }
-    #journey-text span.fade-out {
-        opacity: 0;
-        transform: translateY(-4px); /* 少し上にフワッと移動しながら消える */
-        position: absolute;
+
+    #journey-text::after {
+        content: attr(data-ja); /* data-ja属性から日本語テキストを取得 */
+        position: absolute; /* 元のテキストの上に重ねて表示 */
+        top: 0;
         left: 0;
         right: 0;
+        opacity: 0; /* 初期状態では非表示 */
+    }
+
+    #journey-text:hover span { 
+        opacity: 0; /* ホバー時に元の英語テキストを非表示に */
+    } 
+    
+    #journey-text:hover::after { 
+        opacity: 1; /* ホバー時に日本語テキストを表示 */
+    }
+
+    /* スマホなどのタッチデバイスではホバー効果を無効化（ホバー残り防止） */
+    @media (hover: none) {
+        #journey-text:hover span { opacity: 1; }
+        #journey-text:hover::after { opacity: 0; }
     }
   </style>
 </head>
@@ -817,52 +831,6 @@
       }
       cardContainer.innerHTML = cardHtml;
     }
-
-    // --- ホバーで日本語にクロスフェード切り替えするスクリプト ---
-    document.addEventListener('DOMContentLoaded', function() {
-        const journeyText = document.getElementById('journey-text');
-        if (journeyText) {
-            const span = journeyText.querySelector('span');
-            const englishText = span.textContent;
-            const japaneseText = journeyText.getAttribute('data-ja');
-    
-            function crossFadeText(newText) {
-                if (span.textContent === newText) return;
-    
-                // 現在のテキストをスパンごと複製してフェードアウト用にする
-                const oldSpan = span.cloneNode(true);
-                journeyText.appendChild(oldSpan);
-                
-                // 現在のテキストを即座に新テキストに変更（最初は透明で下に配置）
-                span.textContent = newText;
-                span.style.opacity = '0';
-                span.style.transform = 'translateY(4px)';
-    
-                // 強制ブラウザ再描画
-                void span.offsetWidth;
-    
-                // 古いテキストを消すアニメーション開始
-                oldSpan.classList.add('fade-out');
-                
-                // 新しいテキストを出すアニメーション開始
-                span.style.opacity = '1';
-                span.style.transform = 'translateY(0)';
-    
-                // 0.5秒後に古い要素を削除
-                setTimeout(function() {
-                    oldSpan.remove();
-                }, 500);
-            }
-    
-            journeyText.addEventListener('mouseenter', function() {
-                crossFadeText(japaneseText);
-            });
-    
-            journeyText.addEventListener('mouseleave', function() {
-                crossFadeText(englishText);
-            });
-        }
-    });
 
     function onFailure(error) {
       document.getElementById('loading').style.display = 'none';
