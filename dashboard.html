@@ -65,7 +65,7 @@
         h2 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
         p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
 
-        /* モード切り替えボタン (index.html 準拠) */
+        /* モード切り替えボタン */
         .theme-toggle-btn {
             background: var(--filter-bg);
             border: 1px solid var(--border-color);
@@ -209,14 +209,42 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
             transition: background-color 0.2s ease, border-color 0.2s ease;
         }
+        .detail-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
         .detail-title {
             font-size: 13px;
             font-weight: 700;
             color: var(--text-muted);
-            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 6px;
+            margin: 0;
+        }
+        
+        /* ドライブフォルダリンクボタンのスタイル */
+        .folder-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .folder-link-btn:hover {
+            background: rgba(5, 150, 105, 0.2);
+            border-color: var(--primary);
         }
 
         /* 学生カードの自動グリッドレイアウト（最大幅190px制限） */
@@ -376,14 +404,14 @@
                 <h2>課題別 提出状況ダッシュボード</h2>
                 <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出カードが展開されます。</p>
             </div>
-            <!-- モード切り替えボタン（index.html 準拠のSVGアイコン） -->
+            <!-- モード切り替えボタン -->
             <button id="theme-toggle" class="theme-toggle-btn" title="表示モード切替">
                 <svg id="theme-icon" viewBox="0 0 24 24"></svg>
                 <span id="theme-text">ダークモード</span>
             </button>
         </div>
 
-        <!-- プルダウンによる絞り込みエリア（ラベルが左側の横並び） -->
+        <!-- プルダウンによる絞り込みエリア -->
         <div class="filter-section">
             <div class="filter-group">
                 <label for="lecture-select">講義名</label>
@@ -423,7 +451,7 @@
     </div>
 
     <script>
-        // --- テーマ（ライト/ダークモード）初期化と切り替え処理 (index.html 準拠) ---
+        // --- テーマ（ライト/ダークモード）初期化と切り替え処理 ---
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
         const themeText = document.getElementById('theme-text');
@@ -497,6 +525,7 @@
                         kadaiName: kadaiVal,
                         deadline: r.deadline || '-',
                         requirement: r.requirement || '-',
+                        folderId: r.folderId || '',
                         totalCount: 0,
                         submittedCount: 0,
                         students: []
@@ -641,7 +670,21 @@
                 html += '<tr class="' + detailRowClass + '" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
-                html += '<div class="detail-title"><span>📋 「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
+                
+                // ヘッダー部分（タイトルとGoogleドライブフォルダへのリンクボタン：絵文字削除）
+                html += '<div class="detail-header-flex">';
+                html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
+                
+                if (task.folderId && task.folderId.trim() !== '') {
+                    const folderUrl = 'https://drive.google.com/drive/folders/' + encodeURIComponent(task.folderId.trim());
+                    html += '<a href="' + folderUrl + '" target="_blank" class="folder-link-btn" onclick="event.stopPropagation();">';
+                    html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+                    html += 'Googleドライブのフォルダを開く';
+                    html += '</a>';
+                }
+                
+                html += '</div>'; // detail-header-flex
+
                 html += '<div class="student-cards-grid">';
 
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
