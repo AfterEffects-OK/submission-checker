@@ -61,9 +61,45 @@
             flex-wrap: wrap;
             gap: 16px;
             margin-bottom: 24px;
+            transition: all 0.3s ease;
+            max-height: 200px;
+            overflow: hidden;
+            opacity: 1;
+        }
+        .header-flex.collapsed {
+            max-height: 0;
+            margin-bottom: 0;
+            opacity: 0;
+            pointer-events: none;
         }
         h2 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
         p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
+
+        /* コントロールパネル（表示切替ボタン群） */
+        .controls-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .control-btn {
+            background: var(--filter-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .control-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
 
         /* モード切り替えボタン */
         .theme-toggle-btn {
@@ -103,7 +139,18 @@
             padding: 16px 20px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            transition: background-color 0.2s ease, border-color 0.2s ease;
+            transition: all 0.3s ease;
+            max-height: 200px;
+            overflow: hidden;
+            opacity: 1;
+        }
+        .filter-section.collapsed {
+            max-height: 0;
+            margin-bottom: 0;
+            padding: 0 20px;
+            border-width: 0;
+            opacity: 0;
+            pointer-events: none;
         }
         .filter-group {
             display: flex;
@@ -430,7 +477,7 @@
             justify-content: center;
         }
 
-        /* ふりがなのスタイル（小さめの文字で名前の上部に表示） */
+        /* ふりがなのスタイル */
         .student-card-ruby {
             font-size: 10px;
             color: var(--text-muted);
@@ -452,7 +499,7 @@
             line-height: 1.2;
         }
 
-        /* 提出確認日のスタイル（小さめの文字で名前の下に配置） */
+        /* 提出確認日のスタイル */
         .student-card-date {
             font-size: 10px;
             color: var(--text-muted);
@@ -576,10 +623,16 @@
             p.subtitle {
                 font-size: 12px;
             }
+            /* スマホではPC用の表示切替バーを非表示にする */
+            .controls-bar {
+                display: none;
+            }
             .filter-section {
                 flex-direction: column;
                 gap: 12px;
                 padding: 12px;
+                max-height: none !important;
+                opacity: 1 !important;
             }
             .filter-group {
                 min-width: 100%;
@@ -713,11 +766,14 @@
 <body>
 
     <div class="container">
-        <div class="header-flex">
-            <div>
-                <h2>課題別 提出状況ダッシュボード</h2>
-                <p class="subtitle">各課題のカードをタップすると、学生ごとの提出状況が展開されます。</p>
-            </div>
+        <!-- PC表示用のコントロールバー（タイトル・検索欄の表示切替） -->
+        <div class="controls-bar">
+            <button id="toggle-header-btn" class="control-btn" onclick="toggleHeader()">
+                <span>タイトルを非表示</span>
+            </button>
+            <button id="toggle-filter-btn" class="control-btn" onclick="toggleFilter()">
+                <span>検索・フィルターを非表示</span>
+            </button>
             <!-- モード切り替えボタン -->
             <button id="theme-toggle" class="theme-toggle-btn" title="表示モード切替">
                 <svg id="theme-icon" viewBox="0 0 24 24"></svg>
@@ -725,8 +781,15 @@
             </button>
         </div>
 
+        <div id="header-area" class="header-flex">
+            <div>
+                <h2>課題別 提出状況ダッシュボード</h2>
+                <p class="subtitle">各課題のカードをタップすると、学生ごとの提出状況が展開されます。</p>
+            </div>
+        </div>
+
         <!-- プルダウンによる絞り込みエリア -->
-        <div class="filter-section">
+        <div id="filter-area" class="filter-section">
             <div class="filter-group">
                 <label for="lecture-select">講義名</label>
                 <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
@@ -805,6 +868,30 @@
                 localStorage.setItem('theme', 'light');
             }
         });
+        // --------------------------------------------------------
+
+        // --- タイトル・フィルターの表示/非表示切替関数 ---
+        function toggleHeader() {
+            const headerArea = document.getElementById('header-area');
+            const btn = document.getElementById('toggle-header-btn');
+            headerArea.classList.toggle('collapsed');
+            if (headerArea.classList.contains('collapsed')) {
+                btn.querySelector('span').textContent = 'タイトルを表示';
+            } else {
+                btn.querySelector('span').textContent = 'タイトルを非表示';
+            }
+        }
+
+        function toggleFilter() {
+            const filterArea = document.getElementById('filter-area');
+            const btn = document.getElementById('toggle-filter-btn');
+            filterArea.classList.toggle('collapsed');
+            if (filterArea.classList.contains('collapsed')) {
+                btn.querySelector('span').textContent = '検索・フィルターを表示';
+            } else {
+                btn.querySelector('span').textContent = '検索・フィルターを非表示';
+            }
+        }
         // --------------------------------------------------------
 
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
@@ -1299,10 +1386,6 @@
                 setTimeout(adjustCardNames, 10);
             }
         }
-
-        (function() {
-            // 初期展開状態などを保持するための処理
-        })();
 
         function toggleMobileDetail(taskKey) {
             if (expandedRowKeys.has(taskKey)) {
