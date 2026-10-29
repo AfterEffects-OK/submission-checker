@@ -164,21 +164,24 @@
             border-bottom: none;
         }
 
+        /* 提出済み・未提出のバッジ (index.html 準拠) */
         .badge-submitted {
             background: #d1fae5;
             color: #065f46;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 700;
+            display: inline-block;
         }
         .badge-unsubmitted {
-            background: #f1f5f9;
-            color: #64748b;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-block;
         }
 
         .td-lecture {
@@ -418,7 +421,6 @@
 
                 const rowId = 'detail-row-' + index;
 
-                // メイン行（クリックでトグル）
                 html += '<tr class="clickable-row" id="main-row-' + index + '" onclick="toggleDetail(\'' + rowId + '\', \'main-row-' + index + '\')">';
                 html += '<td class="td-lecture">' + formattedLecture + '</td>';
                 html += '<td style="font-weight: 700;">' + escapeHtml(task.kadaiName) + '</td>';
@@ -437,7 +439,6 @@
                 html += '</td>';
                 html += '</tr>';
 
-                // 直下に配置する詳細展開用の行
                 html += '<tr class="detail-row" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
@@ -446,7 +447,6 @@
                 html += '<thead><tr><th>学生氏名</th><th style="text-align: center; width: 120px;">提出状態</th><th>提出ファイル名</th></tr></thead>';
                 html += '<tbody>';
 
-                // 学生名順にソート
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
                 task.students.forEach(st => {
@@ -471,7 +471,6 @@
             document.getElementById('dashboard-table').style.display = 'table';
         }
 
-        // 行をクリックしたときに詳細行を開閉する関数
         function toggleDetail(rowId, mainRowId) {
             const detailRow = document.getElementById(rowId);
             const mainRow = document.getElementById(mainRowId);
