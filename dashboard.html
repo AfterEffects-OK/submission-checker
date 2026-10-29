@@ -252,9 +252,10 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 190px));
             gap: 12px;
+            position: relative; /* ツールチップのはみ出し制御の基準 */
         }
         .student-card {
-            position: relative; /* ホバー詳細表示の基準位置 */
+            position: relative; 
             border-radius: 8px;
             padding: 12px 14px;
             display: flex;
@@ -263,7 +264,7 @@
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
         
-        /* ホバー時の詳細ツールチップ（ポップアップ） */
+        /* ホバー時の詳細ツールチップ（ポップアップ：はみ出し防止＆下部表示対応） */
         .student-card .card-tooltip {
             visibility: hidden;
             opacity: 0;
@@ -274,24 +275,39 @@
             background-color: #0f172a;
             color: #f8fafc;
             text-align: left;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             white-space: nowrap;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            z-index: 100;
+            z-index: 1000;
             transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
             pointer-events: none;
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+        /* 一番上の行など、上方向にはみ出る場合は下に表示するクラス */
+        .student-card.tooltip-down .card-tooltip {
+            bottom: auto;
+            top: 115%;
+            transform: translateX(-50%) translateY(-4px);
+        }
+        .student-card.tooltip-down .card-tooltip::after {
+            top: auto;
+            bottom: 100%;
+            border-color: transparent transparent #0f172a transparent;
+        }
+
         /* ツールチップの三角形矢印 */
         .student-card .card-tooltip::after {
             content: "";
             position: absolute;
             top: 100%;
             left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
+            margin-left: -4px;
+            border-width: 4px;
             border-style: solid;
             border-color: #0f172a transparent transparent transparent;
         }
@@ -730,7 +746,7 @@
 
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
-                task.students.forEach(st => {
+                task.students.forEach((st, stIdx) => {
                     let cardClass = 'student-card unsubmitted';
                     let badge = '<span class="badge-unsubmitted">未提出</span>';
 
@@ -740,6 +756,11 @@
                     } else if (st.isSubmitted) {
                         cardClass = 'student-card submitted';
                         badge = '<span class="badge-submitted">提出済み</span>';
+                    }
+
+                    // 一番上の行（先頭の数個）は上にスペースがないため、自動で下にツールチップを出すクラスを付与
+                    if (stIdx < 6) {
+                        cardClass += ' tooltip-down';
                     }
 
                     // ツールチップに表示する詳細データ（ファイル名など）
