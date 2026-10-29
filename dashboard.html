@@ -353,7 +353,7 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to { rotate(360deg); }
         }
     </style>
 </head>
@@ -399,7 +399,7 @@
                         <th>科目名</th>
                         <th>課題タイトル</th>
                         <th>提出期限</th>
-                        <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement">↕</span></th>
+                        <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement">▲</span></th>
                         <th style="text-align: center;">提出状況 (提出数 / 対象者数)</th>
                         <th style="text-align: center;">提出率</th>
                     </tr>
@@ -459,8 +459,8 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
-        let currentSortDirection = 'asc'; // 'asc' または 'desc'
-        let expandedRowKeys = new Set(); // 開いているアコーディオンのキー（科目名+課題タイトル）を保持
+        let currentSortDirection = 'asc'; // デフォルトは昇順 (asc)
+        let expandedRowKeys = new Set(); // 開いているアコーディオンのキーを保持
 
         window.addEventListener('DOMContentLoaded', function() {
             fetch(GAS_URL + '?mode=dashboard')
@@ -515,7 +515,7 @@
             allTasksData = Object.values(taskMap);
 
             updateDropdowns(allTasksData);
-            applyFilters();
+            applyFilters(); // 読み込み時からソート＆フィルターを適用
         }
 
         function updateDropdowns(tasks) {
@@ -567,7 +567,7 @@
                 return matchLecture && matchKadai;
             });
 
-            // 現在のソート方向を適用して並び替え
+            // 区分（requirement）によるソートを実行
             filtered.sort((a, b) => {
                 let valA = a.requirement || '';
                 let valB = b.requirement || '';
@@ -580,6 +580,7 @@
 
         // 区分列でのソート処理
         function sortTable(column) {
+            // 昇順・降順を切り替え
             currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
             
             const icon = document.getElementById('sort-icon-' + column);
