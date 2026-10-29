@@ -152,18 +152,32 @@
             gap: 12px;
         }
         .student-card {
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 12px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease, border-color 0.15s ease;
         }
-        .student-card:hover {
-            border-color: #cbd5e1;
+        
+        /* 提出済みカードの背景・枠線カラー（非常に薄い緑） */
+        .student-card.submitted {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
         }
+        .student-card.submitted:hover {
+            border-color: #86efac;
+        }
+
+        /* 未提出カードの背景・枠線カラー（非常に薄い赤） */
+        .student-card.unsubmitted {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        .student-card.unsubmitted:hover {
+            border-color: #fca5a5;
+        }
+
         .student-card-name {
             font-weight: 800;
             font-size: 22px;
@@ -452,7 +466,7 @@
                 html += '</td>';
                 html += '</tr>';
 
-                // 学生カード展開行
+                // 学生カード展開行（ステータスに応じた背景色クラスを付与）
                 html += '<tr class="detail-row" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
@@ -462,11 +476,12 @@
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
                 task.students.forEach(st => {
+                    let cardClass = st.isSubmitted ? 'student-card submitted' : 'student-card unsubmitted';
                     let badge = st.isSubmitted 
                         ? '<span class="badge-submitted">提出済み</span>' 
                         : '<span class="badge-unsubmitted">未提出</span>';
 
-                    html += '<div class="student-card">';
+                    html += '<div class="' + cardClass + '">';
                     html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
                     html += '</div>';
