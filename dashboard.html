@@ -502,10 +502,10 @@
             line-height: 1.1;
         }
 
-        /* 学生氏名のスタイル（フォントサイズを大きめに変更） */
+        /* 学生氏名のスタイル */
         .student-card-name {
             font-weight: 800;
-            font-size: 21px; /* 18px から 21px に拡大 */
+            font-size: 21px;
             color: var(--text-main);
             white-space: nowrap;
             transform-origin: left center;
@@ -767,7 +767,7 @@
                 padding: 6px 10px;
             }
             .student-card-name {
-                font-size: 18px; /* スマホ表示時の学生氏名も合わせて少し大きく調整 */
+                font-size: 18px;
             }
             .student-card-ruby {
                 font-size: 9px;
@@ -833,7 +833,7 @@
                         <th>課題タイトル</th>
                         <th>提出期限</th>
                         <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement">▲</span></th>
-                        <th style="text-align: center;">提出状況 (提出数 / 対象者数)</th>
+                        <th class="sortable" style="text-align: center;" onclick="sortTable('status')">提出状況 (提出数 / 対象者数) <span id="sort-icon-status"></span></th>
                         <th style="text-align: center;">提出率</th>
                     </tr>
                 </thead>
@@ -929,7 +929,8 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
-        let currentSortDirection = 'asc';
+        let currentSortColumn = 'requirement'; // 現在のソート基準列
+        let currentSortDirection = 'asc';     // 'asc' または 'desc'
         let expandedRowKeys = new Set();
 
         window.addEventListener('DOMContentLoaded', function() {
@@ -1145,10 +1146,22 @@
                 return matchLecture && matchKadai;
             });
 
+            // ソート処理の適用
             filtered.sort((a, b) => {
-                let valA = a.requirement || '';
-                let valB = b.requirement || '';
-                let comparison = valA.localeCompare(valB, 'ja');
+                let comparison = 0;
+                if (currentSortColumn === 'requirement') {
+                    let valA = a.requirement || '';
+                    let valB = b.requirement || '';
+                    comparison = valA.localeCompare(valB, 'ja');
+                } else if (currentSortColumn === 'status') {
+                    // 提出数の数値比較（同数なら提出率で補完）
+                    comparison = a.submittedCount - b.submittedCount;
+                    if (comparison === 0) {
+                        let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
+                        let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
+                        comparison = rateA - rateB;
+                    }
+                }
                 return currentSortDirection === 'asc' ? comparison : -comparison;
             });
 
@@ -1156,11 +1169,25 @@
         }
 
         function sortTable(column) {
-            currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-            const icon = document.getElementById('sort-icon-' + column);
-            if (icon) {
-                icon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = 'asc';
             }
+
+            // アイコンの表示更新
+            const iconReq = document.getElementById('sort-icon-requirement');
+            const iconStatus = document.getElementById('sort-icon-status');
+            
+            if (iconReq) iconReq.textContent = '';
+            if (iconStatus) iconStatus.textContent = '';
+
+            const activeIcon = document.getElementById('sort-icon-' + column);
+            if (activeIcon) {
+                activeIcon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+            }
+
             applyFilters();
         }
 
