@@ -18,7 +18,7 @@
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             --filter-bg: #f8fafc;
             --sub-bg: #ffffff;
-            --req-color: #0369a1; /* ライトモード時の必須提出カラー（濃い青） */
+            --req-color: #0369a1;
         }
 
         /* ダークモード時のカラー定義 (body.dark-mode クラスに連動) */
@@ -33,7 +33,7 @@
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             --filter-bg: #0f172a;
             --sub-bg: #1e293b;
-            --req-color: #38bdf8; /* ダークモード時の必須提出カラー（明るく視認性の高いシアン・ブルー） */
+            --req-color: #38bdf8;
         }
 
         body {
@@ -64,6 +64,10 @@
             gap: 16px;
             margin-bottom: 24px;
             transition: all 0.3s ease;
+        }
+        /* タイトル・検索欄の両方が非表示になったときは下部マージンを詰める */
+        .header-top-flex.all-hidden {
+            margin-bottom: 8px;
         }
         
         /* タイトル部分の折りたたみ用ラッパー */
@@ -195,7 +199,7 @@
         .table-container {
             width: 100%;
             overflow-x: auto;
-            margin-top: 20px;
+            margin-top: 0; /* 余白をコンパクトに調整 */
             border: 1px solid var(--border-color);
             border-radius: 12px;
             background: var(--card-bg);
@@ -776,7 +780,7 @@
 
     <div class="container">
         <!-- 最上部ヘッダーエリア：タイトルとコントロールバーを同一行に配置 -->
-        <div class="header-top-flex">
+        <div id="header-top-container" class="header-top-flex">
             <div id="header-area" class="header-content-wrapper">
                 <h2>課題別 提出状況ダッシュボード</h2>
                 <p class="subtitle">各課題のカードをタップすると、学生ごとの提出状況が展開されます。</p>
@@ -880,6 +884,21 @@
         // --------------------------------------------------------
 
         // --- タイトル・フィルターの表示/非表示切替関数 ---
+        function checkAllHiddenState() {
+            const headerArea = document.getElementById('header-area');
+            const filterArea = document.getElementById('filter-area');
+            const topFlex = document.getElementById('header-top-container');
+
+            const isHeaderCollapsed = headerArea.classList.contains('collapsed');
+            const isFilterCollapsed = filterArea.classList.contains('collapsed');
+
+            if (isHeaderCollapsed && isFilterCollapsed) {
+                topFlex.classList.add('all-hidden');
+            } else {
+                topFlex.classList.remove('all-hidden');
+            }
+        }
+
         function toggleHeader() {
             const headerArea = document.getElementById('header-area');
             const btn = document.getElementById('toggle-header-btn');
@@ -889,6 +908,7 @@
             } else {
                 btn.querySelector('span').textContent = 'タイトルを非表示';
             }
+            checkAllHiddenState();
         }
 
         function toggleFilter() {
@@ -900,6 +920,7 @@
             } else {
                 btn.querySelector('span').textContent = '検索・フィルターを非表示';
             }
+            checkAllHiddenState();
         }
         // --------------------------------------------------------
 
