@@ -322,7 +322,7 @@
             border-color: var(--primary);
         }
 
-        /* 学生カード一覧のヘッダーバー（4つのパーツを指定順で横並び） */
+        /* 学生カード一覧のヘッダーバー */
         .student-controls-bar {
             display: flex;
             justify-content: space-between;
@@ -527,16 +527,16 @@
             justify-content: center;
         }
 
-        /* ふりがなのスタイル */
+        /* ふりがなのスタイル（少し大きく見やすく調整: 10px ➔ 12px） */
         .student-card-ruby {
-            font-size: 10px;
+            font-size: 12px;
             color: var(--text-muted);
-            margin-bottom: 1px;
-            font-weight: 500;
+            margin-bottom: 2px;
+            font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.1;
+            line-height: 1.2;
         }
 
         /* 学生氏名のスタイル */
@@ -807,7 +807,7 @@
                 font-size: 18px;
             }
             .student-card-ruby {
-                font-size: 9px;
+                font-size: 11px;
             }
             .student-card-date {
                 font-size: 9px;
@@ -1259,7 +1259,7 @@
             renderDashboard(filtered);
         }
 
-        // --- 学生配列の並べ替えロジック（氏名順はふりがな基準、無い場合は氏名でソート） ---
+        // --- 学生配列の並べ替えロジック（氏名順はふりがな基準） ---
         function sortStudents(students, sortMode) {
             const sorted = [...students];
             if (sortMode === 'status_asc') {
@@ -1272,7 +1272,6 @@
                     const pA = getPriority(a);
                     const pB = getPriority(b);
                     if (pA !== pB) return pA - pB;
-                    // 同ステータス内はふりがな（なければ氏名）でソート
                     const keyA = a.ruby || a.name;
                     const keyB = b.ruby || b.name;
                     return keyA.localeCompare(keyB, 'ja');
@@ -1292,7 +1291,6 @@
                     return keyA.localeCompare(keyB, 'ja');
                 });
             } else {
-                // 氏名順（ふりがな基準）
                 sorted.sort((a, b) => {
                     const keyA = a.ruby || a.name;
                     const keyB = b.ruby || b.name;
@@ -1307,7 +1305,7 @@
             renderMobileCards(tasks);
         }
 
-        // --- 共通学生カードHTML生成ヘルパー（指定順：課題タイトル ➔ 再取得 ➔ ドライブ ➔ 並べ替え） ---
+        // --- 共通学生カードHTML生成ヘルパー ---
         function generateStudentCardsHtml(task, taskKey) {
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
@@ -1316,7 +1314,7 @@
 
             html += '<div class="student-controls-bar">';
             
-            // 左側パーツ 1 & 2：課題タイトル、個別リロードボタン
+            // 左側パーツ：課題タイトル、個別リロードボタン
             html += '<div class="student-header-left">';
             html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
             
@@ -1326,7 +1324,7 @@
             html += '</button>';
             html += '</div>';
 
-            // 右側パーツ 3 & 4：Googleドライブを開くボタン、並べ替えセレクトボックス
+            // 右側パーツ：Googleドライブフォルダを開くボタン、並べ替えセレクトボックス
             html += '<div class="student-header-right">';
             
             if (trimmedFolderId !== '' && trimmedFolderId !== '-') {
@@ -1547,6 +1545,7 @@
             applyFilters();
         }
 
+        // HTMLエスケープ関数
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
