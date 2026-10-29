@@ -132,60 +132,66 @@
             background: #ffffff;
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 16px 20px;
+            padding: 20px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
         .detail-title {
             font-size: 13px;
             font-weight: 700;
             color: var(--text-muted);
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .student-sub-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed; /* 列幅を固定して広がりを防ぐ */
+        /* 学生カードの4列グリッドレイアウト */
+        .student-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
         }
-        .student-sub-table th, .student-sub-table td {
-            padding: 6px 4px; /* 上下の余白もさらにコンパクトに */
-            font-size: 13px;
-            border-bottom: 1px solid var(--border-color);
-            text-align: left;
-            background: #fff;
+        .student-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.1s ease;
+        }
+        .student-card:hover {
+            border-color: #cbd5e1;
+        }
+        .student-card-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-        }
-        .student-sub-table th {
-            background: #f8fafc;
-            font-size: 11px;
-        }
-        .student-sub-table tr:last-child td {
-            border-bottom: none;
+            margin-right: 8px;
         }
 
         /* 提出済み・未提出のバッジ (index.html 準拠) */
         .badge-submitted {
             background: #d1fae5;
             color: #065f46;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
             font-size: 11px;
             font-weight: 700;
-            display: inline-block;
+            white-space: nowrap;
         }
         .badge-unsubmitted {
             background: #fee2e2;
             color: #991b1b;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
             font-size: 11px;
             font-weight: 700;
-            display: inline-block;
+            white-space: nowrap;
         }
 
         .td-lecture {
@@ -257,7 +263,7 @@
 
     <div class="container">
         <h2>課題別 提出状況ダッシュボード</h2>
-        <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出状況が展開されます。</p>
+        <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出カードが展開されます。</p>
 
         <!-- プルダウンによる絞り込みエリア -->
         <div class="filter-section">
@@ -443,73 +449,28 @@
                 html += '</td>';
                 html += '</tr>';
 
-                // サブテーブル：列幅を固定し、余白を詰めて4人分をコンパクトに配置
+                // 学生氏名・提出状態をカード化して4列に並べるセクション
                 html += '<tr class="detail-row" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
                 html += '<div class="detail-title"><span>📋 「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
-                html += '<table class="student-sub-table">';
-                html += '<colgroup>';
-                html += '<col style="width: auto;"><col style="width: 75px;">';
-                html += '<col style="width: auto;"><col style="width: 75px;">';
-                html += '<col style="width: auto;"><col style="width: 75px;">';
-                html += '<col style="width: auto;"><col style="width: 75px;">';
-                html += '</colgroup>';
-                html += '<thead><tr>';
-                html += '<th>学生氏名</th><th style="text-align: center;">提出状態</th>';
-                html += '<th style="border-left: 1px solid var(--border-color); padding-left: 6px;">学生氏名</th><th style="text-align: center;">提出状態</th>';
-                html += '<th style="border-left: 1px solid var(--border-color); padding-left: 6px;">学生氏名</th><th style="text-align: center;">提出状態</th>';
-                html += '<th style="border-left: 1px solid var(--border-color); padding-left: 6px;">学生氏名</th><th style="text-align: center;">提出状態</th>';
-                html += '</tr></thead>';
-                html += '<tbody>';
+                html += '<div class="student-cards-grid">';
 
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
-                for (let i = 0; i < task.students.length; i += 4) {
-                    const st1 = task.students[i];
-                    const st2 = task.students[i + 1];
-                    const st3 = task.students[i + 2];
-                    const st4 = task.students[i + 3];
+                task.students.forEach(st => {
+                    let badge = st.isSubmitted 
+                        ? '<span class="badge-submitted">提出済み</span>' 
+                        : '<span class="badge-unsubmitted">未提出</span>';
 
-                    html += '<tr>';
+                    html += '<div class="student-card">';
+                    html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
+                    html += badge;
+                    html += '</div>';
+                });
 
-                    // 1人目
-                    let badge1 = st1.isSubmitted ? '<span class="badge-submitted">提出済み</span>' : '<span class="badge-unsubmitted">未提出</span>';
-                    html += '<td style="font-weight: 600;">' + escapeHtml(st1.name) + '</td>';
-                    html += '<td style="text-align: center;">' + badge1 + '</td>';
-
-                    // 2人目
-                    if (st2) {
-                        let badge2 = st2.isSubmitted ? '<span class="badge-submitted">提出済み</span>' : '<span class="badge-unsubmitted">未提出</span>';
-                        html += '<td style="font-weight: 600; border-left: 1px solid var(--border-color); padding-left: 6px;">' + escapeHtml(st2.name) + '</td>';
-                        html += '<td style="text-align: center;">' + badge2 + '</td>';
-                    } else {
-                        html += '<td style="border-left: 1px solid var(--border-color);"></td><td></td>';
-                    }
-
-                    // 3人目
-                    if (st3) {
-                        let badge3 = st3.isSubmitted ? '<span class="badge-submitted">提出済み</span>' : '<span class="badge-unsubmitted">未提出</span>';
-                        html += '<td style="font-weight: 600; border-left: 1px solid var(--border-color); padding-left: 6px;">' + escapeHtml(st3.name) + '</td>';
-                        html += '<td style="text-align: center;">' + badge3 + '</td>';
-                    } else {
-                        html += '<td style="border-left: 1px solid var(--border-color);"></td><td></td>';
-                    }
-
-                    // 4人目
-                    if (st4) {
-                        let badge4 = st4.isSubmitted ? '<span class="badge-submitted">提出済み</span>' : '<span class="badge-unsubmitted">未提出</span>';
-                        html += '<td style="font-weight: 600; border-left: 1px solid var(--border-color); padding-left: 6px;">' + escapeHtml(st4.name) + '</td>';
-                        html += '<td style="text-align: center;">' + badge4 + '</td>';
-                    } else {
-                        html += '<td style="border-left: 1px solid var(--border-color);"></td><td></td>';
-                    }
-
-                    html += '</tr>';
-                }
-
-                html += '</tbody></table>';
-                html += '</div>';
+                html += '</div>'; // student-cards-grid
+                html += '</div>'; // detail-box
                 html += '</td>';
                 html += '</tr>';
             });
