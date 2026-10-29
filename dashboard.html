@@ -460,6 +460,7 @@
 
         let allTasksData = [];
         let currentSortDirection = 'asc'; // 'asc' または 'desc'
+        let expandedRowKeys = new Set(); // 開いているアコーディオンのキー（科目名+課題タイトル）を保持
 
         window.addEventListener('DOMContentLoaded', function() {
             fetch(GAS_URL + '?mode=dashboard')
@@ -560,10 +561,18 @@
             const selectedLecture = document.getElementById('lecture-select').value;
             const selectedKadai = document.getElementById('kadai-select').value;
 
-            const filtered = allTasksData.filter(t => {
+            let filtered = allTasksData.filter(t => {
                 const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
                 const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
                 return matchLecture && matchKadai;
+            });
+
+            // 現在のソート方向を適用して並び替え
+            filtered.sort((a, b) => {
+                let valA = a.requirement || '';
+                let valB = b.requirement || '';
+                let comparison = valA.localeCompare(valB, 'ja');
+                return currentSortDirection === 'asc' ? comparison : -comparison;
             });
 
             renderDashboard(filtered);
@@ -578,23 +587,7 @@
                 icon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
             }
 
-            const selectedLecture = document.getElementById('lecture-select').value;
-            const selectedKadai = document.getElementById('kadai-select').value;
-
-            const filtered = allTasksData.filter(t => {
-                const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
-                const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
-                return matchLecture && matchKadai;
-            });
-
-            filtered.sort((a, b) => {
-                let valA = a[column] || '';
-                let valB = b[column] || '';
-                let comparison = valA.localeCompare(valB, 'ja');
-                return currentSortDirection === 'asc' ? comparison : -comparison;
-            });
-
-            renderDashboard(filtered);
+            applyFilters();
         }
 
         function renderDashboard(tasks) {
@@ -613,8 +606,14 @@
                 let formattedLecture = escapeHtml(task.lecture).replace(/\(/g, '<wbr>(').replace(/（/g, '<wbr>（');
 
                 const rowId = 'detail-row-' + index;
+                const mainRowId = 'main-row-' + index;
+                const taskKey = task.lecture + '_' + task.kadaiName;
+                const isExpanded = expandedRowKeys.has(taskKey);
 
-                html += '<tr class="clickable-row" id="main-row-' + index + '" onclick="toggleDetail(\'' + rowId + '\', \'main-row-' + index + '\')">';
+                const mainRowClass = isExpanded ? 'clickable-row expanded' : 'clickable-row';
+                const detailRowClass = isExpanded ? 'detail-row active' : 'detail-row';
+
+                html += '<tr class="' + mainRowClass + '" id="' + mainRowId + '" onclick="toggleDetail(\'' + rowId + '\', \'' + mainRowId + '\', \'' + escapeHtml(taskKey) + '\')">';
                 html += '<td class="td-lecture">' + formattedLecture + '</td>';
                 html += '<td style="font-weight: 700;">' + escapeHtml(task.kadaiName) + '</td>';
                 html += '<td style="color: var(--text-muted);">' + escapeHtml(task.deadline) + '</td>';
@@ -633,7 +632,7 @@
                 html += '</tr>';
 
                 // 学生カード展開行
-                html += '<tr class="detail-row" id="' + rowId + '">';
+                html += '<tr class="' + detailRowClass + '" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
                 html += '<div class="detail-title"><span>📋 「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
@@ -669,6 +668,9 @@
 
             tbody.innerHTML = html;
             document.getElementById('dashboard-table').style.display = 'table';
+
+            // 描画されたカードの文字スケール調整を実行
+            setTimeout(adjustCardNames, 10);
         }
 
         // カードが描画された後に文字数に応じてスケール（横幅縮小）を自動調整する処理
@@ -684,16 +686,18 @@
             });
         }
 
-        function toggleDetail(rowId, mainRowId) {
+        function toggleDetail(rowId, mainRowId, taskKey) {
             const detailRow = document.getElementById(rowId);
             const mainRow = document.getElementById(mainRowId);
 
             if (detailRow.classList.contains('active')) {
                 detailRow.classList.remove('active');
                 mainRow.classList.remove('expanded');
+                expandedRowKeys.delete(taskKey); // 開き状態を削除
             } else {
                 detailRow.classList.add('active');
                 mainRow.classList.add('expanded');
+                expandedRowKeys.add(taskKey); // 開き状態を記録
                 setTimeout(adjustCardNames, 10);
             }
         }
