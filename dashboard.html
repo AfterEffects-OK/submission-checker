@@ -569,13 +569,31 @@
                 padding-bottom: 8px;
                 border-bottom: 1px solid var(--border-color);
             }
+
+            /* スマホ用提出状況＆プログレスバーの横並びレイアウト */
             .mobile-progress-row {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                gap: 12px;
                 margin-bottom: 14px;
-                font-size: 14px;
+                background: var(--filter-bg);
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+            }
+            .mobile-progress-text {
+                font-size: 13px;
                 font-weight: 700;
+                white-space: nowrap;
+            }
+            .mobile-progress-bar-container {
+                background: var(--border-color);
+                border-radius: 6px;
+                overflow: hidden;
+                height: 10px;
+                flex-grow: 1;
+                max-width: 160px;
             }
 
             /* スマホ用アコーディオン展開ボタン */
@@ -671,7 +689,7 @@
             </table>
         </div>
 
-        <!-- スマホ用カードビュー（横スクロールを完全に防ぎます） -->
+        <!-- スマホ用カードビュー -->
         <div id="mobile-cards-container" class="mobile-cards-view"></div>
     </div>
 
@@ -717,8 +735,8 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
-        let currentSortDirection = 'asc'; // デフォルトは昇順 (asc)
-        let expandedRowKeys = new Set(); // 開いているアコーディオンのキーを保持
+        let currentSortDirection = 'asc';
+        let expandedRowKeys = new Set();
 
         window.addEventListener('DOMContentLoaded', function() {
             fetch(GAS_URL + '?mode=dashboard')
@@ -976,7 +994,7 @@
             setTimeout(adjustCardNames, 10);
         }
 
-        // --- スマホ用カードビューのレンダリング（横スクロールなし） ---
+        // --- スマホ用カードビューのレンダリング（提出状況と棒グラフを横並び） ---
         function renderMobileCards(tasks) {
             const container = document.getElementById('mobile-cards-container');
             let html = '';
@@ -1010,13 +1028,10 @@
                 }
                 html += '</div>';
 
+                // 提出状況テキストとプログレスバーを横並びにするレイアウト
                 html += '<div class="mobile-progress-row">';
-                html += '<span>提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</span>';
-                html += '</div>';
-
-                // 進捗バー
-                html += '<div style="background: var(--border-color); border-radius: 6px; height: 8px; width: 100%; overflow: hidden; margin-bottom: 12px;">';
-                html += '<div style="background: var(--primary); height: 100%; width: ' + percentage + '%;"></div>';
+                html += '<div class="mobile-progress-text">提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</div>';
+                html += '<div class="mobile-progress-bar-container"><div style="background: var(--primary); height: 100%; width: ' + percentage + '%;"></div></div>';
                 html += '</div>';
 
                 // 展開ボタン
@@ -1103,7 +1118,7 @@
             } else {
                 expandedRowKeys.add(taskKey);
             }
-            applyFilters(); // 再描画して状態を反映
+            applyFilters();
         }
 
         function escapeHtml(str) {
