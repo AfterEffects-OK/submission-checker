@@ -98,9 +98,36 @@
             color: var(--text-muted);
             font-weight: 700;
             font-size: 13px;
+            white-space: nowrap;
         }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background-color: #f8fafc; }
+
+        /* セルの折り返し個別設定 */
+        .td-lecture {
+            font-weight: 600;
+            white-space: pre-wrap;
+            word-break: normal;
+            overflow-wrap: break-word;
+        }
+        .td-requirement {
+            white-space: nowrap;
+        }
+        .td-status {
+            text-align: center;
+            white-space: nowrap;
+            font-feature-settings: "tnum"; /* 数字の幅を揃えてきれいに表示 */
+        }
+        .submitted-num {
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 16px;
+        }
+        .total-num {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+        }
 
         /* 進捗バーのスタイル */
         .progress-bar-container {
@@ -148,7 +175,7 @@
         <h2>課題別 提出状況ダッシュボード</h2>
         <p class="subtitle">すべての課題ごとの提出状況と提出率を一覧で確認します。</p>
 
-        <!-- プルダウンによる絞り込みエリア（講義年度を廃止） -->
+        <!-- プルダウンによる絞り込みエリア -->
         <div class="filter-section">
             <div class="filter-group">
                 <label for="lecture-select">科目名 / 講義名</label>
@@ -249,7 +276,6 @@
             const currentLecture = lectureSelect.value;
             const currentKadai = kadaiSelect.value;
 
-            // 1. 科目名の選択肢（全体からユニーク抽出）
             const lectures = [...new Set(allTasksData.map(t => t.lecture))].sort();
             lectureSelect.innerHTML = '<option value="すべて">すべて</option>';
             lectures.forEach(lec => {
@@ -260,7 +286,6 @@
             });
             lectureSelect.value = lectures.includes(currentLecture) ? currentLecture : 'すべて';
 
-            // 2. 課題タイトルの選択肢（科目名で絞り込む）
             const filteredByLecture = (lectureSelect.value === 'すべて') 
                 ? allTasksData 
                 : allTasksData.filter(t => t.lecture === lectureSelect.value);
@@ -276,13 +301,11 @@
             kadaiSelect.value = kadais.includes(currentKadai) ? currentKadai : 'すべて';
         }
 
-        // 科目名が変更されたとき
         function onLectureChange() {
             updateDropdowns(allTasksData);
             applyFilters();
         }
 
-        // 絞り込み条件に合致するデータを抽出してテーブル描画
         function applyFilters() {
             const selectedLecture = document.getElementById('lecture-select').value;
             const selectedKadai = document.getElementById('kadai-select').value;
@@ -310,12 +333,21 @@
                 const percentage = task.totalCount > 0 ? Math.round((task.submittedCount / task.totalCount) * 100) : 0;
                 let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: #64748b;';
 
+                let formattedLecture = escapeHtml(task.lecture).replace(/\(/g, '<wbr>(').replace(/（/g, '<wbr>（');
+
                 html += '<tr>';
-                html += '<td style="font-weight: 600;">' + escapeHtml(task.lecture) + '</td>';
+                html += '<td class="td-lecture">' + formattedLecture + '</td>';
                 html += '<td style="font-weight: 700;">' + escapeHtml(task.kadaiName) + '</td>';
                 html += '<td style="color: var(--text-muted);">' + escapeHtml(task.deadline) + '</td>';
-                html += '<td><span style="' + reqClass + '">' + escapeHtml(task.requirement) + '</span></td>';
-                html += '<td style="text-align: center; font-weight: 600;">' + task.submittedCount + ' / ' + task.totalCount + ' 人</td>';
+                html += '<td class="td-requirement"><span style="' + reqClass + '">' + escapeHtml(task.requirement) + '</span></td>';
+                
+                // 提出状況の表示を視覚的に整理（提出数を強調し、スラッシュや単位を見やすく）
+                html += '<td class="td-status">';
+                html += '<span class="submitted-num">' + task.submittedCount + '</span>';
+                html += '<span style="color: var(--text-muted); margin: 0 4px;">/</span>';
+                html += '<span class="total-num">' + task.totalCount + '人</span>';
+                html += '</td>';
+
                 html += '<td style="text-align: center;">';
                 html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: ' + percentage + '%;"></div></div>';
                 html += '<span style="font-weight: 700; font-size: 14px;">' + percentage + '%</span>';
