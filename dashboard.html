@@ -178,6 +178,15 @@
             border-color: #fca5a5;
         }
 
+        /* 評価不能カードの背景・枠線カラー（非常に薄い黄色） */
+        .student-card.unknown {
+            background: #fefce8;
+            border: 1px solid #fef08a;
+        }
+        .student-card.unknown:hover {
+            border-color: #fde047;
+        }
+
         .student-card-name {
             font-weight: 800;
             font-size: 22px;
@@ -189,10 +198,10 @@
             display: inline-block;
         }
 
-        /* 提出済み・未提出のバッジ (index.html 準拠) */
+        /* 提出済み・未提出・評価不能のバッジ（濃い背景色 ＆ 淡い文字色） */
         .badge-submitted {
-            background: #d1fae5;
-            color: #065f46;
+            background: #047857; /* 濃い緑 */
+            color: #ecfdf5;      /* 淡い文字色 */
             padding: 3px 8px;
             border-radius: 6px;
             font-size: 11px;
@@ -201,8 +210,18 @@
             flex-shrink: 0;
         }
         .badge-unsubmitted {
-            background: #fee2e2;
-            color: #991b1b;
+            background: #b91c1c; /* 濃い赤 */
+            color: #fef2f2;      /* 淡い文字色 */
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .badge-unknown {
+            background: #ca8a04; /* 黄色（濃いめ） */
+            color: #fefce8;      /* 淡い文字色 */
             padding: 3px 8px;
             border-radius: 6px;
             font-size: 11px;
@@ -370,6 +389,7 @@
 
                 taskMap[key].students.push({
                     name: r.studentName,
+                    status: r.isSubmitted, // '提出済み', '未提出', '評価不能' などに対応できるようステータスを保持
                     isSubmitted: isOriginalSubmitted,
                     fileName: r.fileName || '-'
                 });
@@ -466,7 +486,7 @@
                 html += '</td>';
                 html += '</tr>';
 
-                // 学生カード展開行（ステータスに応じた背景色クラスを付与）
+                // 学生カード展開行
                 html += '<tr class="detail-row" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
@@ -476,10 +496,16 @@
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
                 task.students.forEach(st => {
-                    let cardClass = st.isSubmitted ? 'student-card submitted' : 'student-card unsubmitted';
-                    let badge = st.isSubmitted 
-                        ? '<span class="badge-submitted">提出済み</span>' 
-                        : '<span class="badge-unsubmitted">未提出</span>';
+                    let cardClass = 'student-card unsubmitted';
+                    let badge = '<span class="badge-unsubmitted">未提出</span>';
+
+                    if (st.status === '評価不能' || st.status === '判定不能') {
+                        cardClass = 'student-card unknown';
+                        badge = '<span class="badge-unknown">評価不能</span>';
+                    } else if (st.isSubmitted) {
+                        cardClass = 'student-card submitted';
+                        badge = '<span class="badge-submitted">提出済み</span>';
+                    }
 
                     html += '<div class="' + cardClass + '">';
                     html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
