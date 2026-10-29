@@ -58,6 +58,12 @@
         <h2>課題別 提出状況ダッシュボード</h2>
         <p class="subtitle">すべての課題ごとの提出状況と提出率を一覧で確認します。</p>
 
+        <!-- ▼ 追加：フィルターボタンのエリア -->
+        <div id="filter-buttons" style="margin-bottom: 24px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="filter-btn active" data-filter="すべて" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--primary); color: #fff; cursor: pointer; font-weight: 600;">すべて</button>
+            <!-- ここに講義名などのボタンがJSで自動生成されるようにすると便利です -->
+        </div>
+
         <div id="loading">
             <div class="spinner"></div>
             <span>全データを読み込み中...</span>
