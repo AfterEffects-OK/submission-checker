@@ -268,29 +268,6 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
             transition: background-color 0.2s ease, border-color 0.2s ease;
         }
-        .detail-header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .detail-title-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .detail-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin: 0;
-        }
         
         /* 個別リロードボタンのスタイル */
         .reload-btn {
@@ -300,9 +277,9 @@
             background: var(--filter-bg);
             color: var(--text-muted);
             border: 1px solid var(--border-color);
-            padding: 4px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -313,8 +290,8 @@
             border-color: var(--primary);
         }
         .reload-btn svg {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2.5;
@@ -345,22 +322,43 @@
             border-color: var(--primary);
         }
 
-        /* 学生カード一覧のヘッダーバー（並べ替えコントロール用） */
+        /* 学生カード一覧のヘッダーバー（4つのパーツを1行で横並び） */
         .student-controls-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
             margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px dashed var(--border-color);
+        }
+        .student-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .student-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .detail-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            white-space: nowrap;
         }
         .student-sort-group {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-left: 0; /* 左側（タイトルと同一行）に配置 */
         }
         .student-sort-group label {
             font-size: 12px;
@@ -1299,15 +1297,43 @@
             renderMobileCards(tasks);
         }
 
-        // --- 共通学生カードHTML生成ヘルパー ---
+        // --- 共通学生カードHTML生成ヘルパー（4つのパーツを1行に横並び配置） ---
         function generateStudentCardsHtml(task, taskKey) {
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
+            const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
+
             let html = '';
 
-            // 学生カード上部コントロールバー（タイトルと並べ替えを同一行に横並び配置）
+            // 1行のヘッダーバーに4つのパーツを格納
             html += '<div class="student-controls-bar">';
+            
+            // 左側パーツ（1: 個別リロードボタン, 2: ドライブフォルダを開くボタン）
+            html += '<div class="student-header-left">';
+            
+            // パーツ①：再取得ボタン
+            html += '<button class="reload-btn" onclick="event.stopPropagation(); reloadTask(\'' + escapeHtml(task.lecture) + '\', \'' + escapeHtml(task.kadaiName) + '\', this);" title="この課題の状況を再取得">';
+            html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
+            html += '再取得';
+            html += '</button>';
+
+            // パーツ②：Googleドライブフォルダを開くボタン
+            if (trimmedFolderId !== '' && trimmedFolderId !== '-') {
+                const folderUrl = 'https://drive.google.com/drive/folders/' + encodeURIComponent(trimmedFolderId);
+                html += '<a href="' + folderUrl + '" target="_blank" class="folder-link-btn" onclick="event.stopPropagation();">';
+                html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+                html += 'Googleドライブのフォルダを開く';
+                html += '</a>';
+            }
+
+            html += '</div>';
+
+            // 右側パーツ（3: 課題タイトルの学生別提出状況, 4: 並べ替えセレクトボックス）
+            html += '<div class="student-header-right">';
+            
+            // パーツ③：課題タイトル表示
             html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
             
+            // パーツ④：並べ替えプルダウン
             html += '<div class="student-sort-group">';
             html += '<label for="student-sort-' + escapeHtml(taskKey) + '">並べ替え:</label>';
             html += '<select id="student-sort-' + escapeHtml(taskKey) + '" class="student-sort-select" onchange="onStudentSortChange(\'' + escapeHtml(taskKey) + '\', this)">';
@@ -1315,6 +1341,8 @@
             html += '<option value="status_asc"' + (currentSortMode === 'status_asc' ? ' selected' : '') + '>提出状況順 (昇順)</option>';
             html += '<option value="status_desc"' + (currentSortMode === 'status_desc' ? ' selected' : '') + '>提出状況順 (降順)</option>';
             html += '</select>';
+            html += '</div>';
+
             html += '</div>';
 
             html += '</div>';
@@ -1414,26 +1442,6 @@
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
                 
-                html += '<div class="detail-header-flex">';
-                html += '<div class="detail-title-group">';
-                
-                // 個別リロードボタン（PC用）
-                html += '<button class="reload-btn" onclick="event.stopPropagation(); reloadTask(\'' + escapeHtml(task.lecture) + '\', \'' + escapeHtml(task.kadaiName) + '\', this);" title="この課題の状況を再取得">';
-                html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
-                html += '再取得';
-                html += '</button>';
-                html += '</div>';
-
-                const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
-                if (trimmedFolderId !== '' && trimmedFolderId !== '-') {
-                    const folderUrl = 'https://drive.google.com/drive/folders/' + encodeURIComponent(trimmedFolderId);
-                    html += '<a href="' + folderUrl + '" target="_blank" class="folder-link-btn" onclick="event.stopPropagation();">';
-                    html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
-                    html += 'Googleドライブのフォルダを開く';
-                    html += '</a>';
-                }
-                html += '</div>';
-
                 html += generateStudentCardsHtml(task, taskKey);
 
                 html += '</div>';
@@ -1489,14 +1497,6 @@
 
                 html += '<div class="' + containerClass + '" id="mobile-detail-' + index + '">';
                 
-                // スマホ用個別リロードボタン
-                html += '<div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">';
-                html += '<button class="reload-btn" onclick="reloadTask(\'' + escapeHtml(task.lecture) + '\', \'' + escapeHtml(task.kadaiName) + '\', this);" title="この課題の状況を再取得">';
-                html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
-                html += '最新の状況に再取得';
-                html += '</button>';
-                html += '</div>';
-
                 html += generateStudentCardsHtml(task, taskKey);
 
                 html += '</div>';
