@@ -84,7 +84,7 @@
             border-color: var(--primary);
         }
 
-        /* プルダウンフィルターエリア（課題タイトルを左側に配置） */
+        /* プルダウンフィルターエリア（講義名 → 課題の順に配置） */
         .filter-section {
             display: flex;
             gap: 16px;
@@ -371,17 +371,17 @@
             </button>
         </div>
 
-        <!-- プルダウンによる絞り込みエリア（課題タイトルを左側に配置） -->
+        <!-- プルダウンによる絞り込みエリア（講義名 → 課題タイトルの順） -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="kadai-select">課題タイトル</label>
-                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
+                <label for="lecture-select">講義名タイトル / 講義名</label>
+                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="lecture-select">科目名 / 講義名</label>
-                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
+                <label for="kadai-select">課題タイトル</label>
+                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
@@ -525,7 +525,7 @@
             const currentLecture = lectureSelect.value;
             const currentKadai = kadaiSelect.value;
 
-            // 科目セレクトの更新
+            // 講義名セレクトの更新
             const lectures = [...new Set(allTasksData.map(t => t.lecture))].sort();
             lectureSelect.innerHTML = '<option value="すべて">すべて</option>';
             lectures.forEach(lec => {
@@ -536,7 +536,7 @@
             });
             lectureSelect.value = lectures.includes(currentLecture) ? currentLecture : 'すべて';
 
-            // 課題セレクトの更新（科目で絞り込み可能）
+            // 課題セレクトの更新（講義名で絞り込み可能）
             const filteredByLecture = (lectureSelect.value === 'すべて') 
                 ? allTasksData 
                 : allTasksData.filter(t => t.lecture === lectureSelect.value);
