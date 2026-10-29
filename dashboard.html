@@ -421,6 +421,27 @@
             border-color: rgba(234, 179, 8, 0.5);
         }
 
+        .student-info-wrapper {
+            overflow: hidden;
+            flex-grow: 1;
+            margin-right: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* ふりがなのスタイル（小さめの文字で名前の上部に表示） */
+        .student-card-ruby {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 1px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.1;
+        }
+
         .student-card-name {
             font-weight: 800;
             font-size: 18px;
@@ -428,15 +449,17 @@
             white-space: nowrap;
             transform-origin: left center;
             display: inline-block;
+            line-height: 1.2;
         }
 
-        /* 提出確認日のスタイル（小さめの文字） */
+        /* 提出確認日のスタイル（小さめの文字で名前の下に配置） */
         .student-card-date {
             font-size: 10px;
             color: var(--text-muted);
-            margin-top: 2px;
+            margin-top: 1px;
             font-weight: 500;
             white-space: nowrap;
+            line-height: 1.1;
         }
 
         /* ステータスバッジのスタイル */
@@ -678,6 +701,9 @@
             .student-card-name {
                 font-size: 15px;
             }
+            .student-card-ruby {
+                font-size: 9px;
+            }
             .student-card-date {
                 font-size: 9px;
             }
@@ -837,6 +863,7 @@
                         if (!taskMap[key].studentsMap[studentName]) {
                             taskMap[key].studentsMap[studentName] = {
                                 name: studentName,
+                                ruby: r.studentRuby || '',
                                 status: r.isSubmitted,
                                 isSubmitted: false,
                                 submitDateStr: r.submitDateStr || '-',
@@ -854,6 +881,9 @@
                         }
                         if (r.submitDateStr && r.submitDateStr !== '-') {
                             stObj.submitDateStr = r.submitDateStr;
+                        }
+                        if (r.studentRuby) {
+                            stObj.ruby = r.studentRuby;
                         }
 
                         if (r.fileName && r.fileName !== '-') {
@@ -907,6 +937,7 @@
                 if (!taskMap[key].studentsMap[studentName]) {
                     taskMap[key].studentsMap[studentName] = {
                         name: studentName,
+                        ruby: r.studentRuby || '',
                         status: r.isSubmitted,
                         isSubmitted: false,
                         submitDateStr: r.submitDateStr || '-',
@@ -924,6 +955,9 @@
                 }
                 if (r.submitDateStr && r.submitDateStr !== '-') {
                     stObj.submitDateStr = r.submitDateStr;
+                }
+                if (r.studentRuby) {
+                    stObj.ruby = r.studentRuby;
                 }
 
                 if (r.fileName && r.fileName !== '-') {
@@ -1112,12 +1146,15 @@
                         fileDisplay = st.fileNames.join('\n・');
                         fileDisplay = '\n・' + fileDisplay;
                     }
-                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
+                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nふりがな: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                     html += '<div class="' + cardClass + '">';
                     html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
-                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
-                    html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
+                    html += '<div class="student-info-wrapper">';
+                    if (st.ruby) {
+                        html += '<div class="student-card-ruby">' + escapeHtml(st.ruby) + '</div>';
+                    }
+                    html += '<div><span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span></div>';
                     html += '<div class="student-card-date">' + escapeHtml(st.submitDateStr || '-') + '</div>';
                     html += '</div>';
                     html += badge;
@@ -1211,12 +1248,15 @@
                         fileDisplay = st.fileNames.join('\n・');
                         fileDisplay = '\n・' + fileDisplay;
                     }
-                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
+                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nふりがな: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                     html += '<div class="' + cardClass + '">';
                     html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
-                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
-                    html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
+                    html += '<div class="student-info-wrapper">';
+                    if (st.ruby) {
+                        html += '<div class="student-card-ruby">' + escapeHtml(st.ruby) + '</div>';
+                    }
+                    html += '<div><span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span></div>';
                     html += '<div class="student-card-date">' + escapeHtml(st.submitDateStr || '-') + '</div>';
                     html += '</div>';
                     html += badge;
@@ -1259,6 +1299,10 @@
                 setTimeout(adjustCardNames, 10);
             }
         }
+
+        (function() {
+            // 初期展開状態などを保持するための処理
+        })();
 
         function toggleMobileDetail(taskKey) {
             if (expandedRowKeys.has(taskKey)) {
