@@ -497,6 +497,26 @@
     .container {
       position: relative;
     }
+
+    /* ▼ フッター日本語切り替え クロスフェードエフェクト */
+    #journey-text {
+        position: relative;
+        display: inline-block;
+        min-height: 1.5em;
+    }
+    #journey-text span {
+        display: inline-block;
+        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    #journey-text span.fade-out {
+        opacity: 0;
+        transform: translateY(-4px); /* 少し上にフワッと移動しながら消える */
+        position: absolute;
+        left: 0;
+        right: 0;
+    }
   </style>
 </head>
 <body>
@@ -798,19 +818,48 @@
       cardContainer.innerHTML = cardHtml;
     }
 
-    // --- ホバーで日本語に切り替えるスクリプト ---
+    // --- ホバーで日本語にクロスフェード切り替えするスクリプト ---
     document.addEventListener('DOMContentLoaded', function() {
         const journeyText = document.getElementById('journey-text');
         if (journeyText) {
-            const originalText = journeyText.querySelector('span').textContent;
-            const jaText = journeyText.getAttribute('data-ja');
-
+            const span = journeyText.querySelector('span');
+            const englishText = span.textContent;
+            const japaneseText = journeyText.getAttribute('data-ja');
+    
+            function crossFadeText(newText) {
+                if (span.textContent === newText) return;
+    
+                // 現在のテキストをスパンごと複製してフェードアウト用にする
+                const oldSpan = span.cloneNode(true);
+                journeyText.appendChild(oldSpan);
+                
+                // 現在のテキストを即座に新テキストに変更（最初は透明で下に配置）
+                span.textContent = newText;
+                span.style.opacity = '0';
+                span.style.transform = 'translateY(4px)';
+    
+                // 強制ブラウザ再描画
+                void span.offsetWidth;
+    
+                // 古いテキストを消すアニメーション開始
+                oldSpan.classList.add('fade-out');
+                
+                // 新しいテキストを出すアニメーション開始
+                span.style.opacity = '1';
+                span.style.transform = 'translateY(0)';
+    
+                // 0.5秒後に古い要素を削除
+                setTimeout(function() {
+                    oldSpan.remove();
+                }, 500);
+            }
+    
             journeyText.addEventListener('mouseenter', function() {
-                journeyText.querySelector('span').textContent = jaText;
+                crossFadeText(japaneseText);
             });
-
+    
             journeyText.addEventListener('mouseleave', function() {
-                journeyText.querySelector('span').textContent = originalText;
+                crossFadeText(englishText);
             });
         }
     });
