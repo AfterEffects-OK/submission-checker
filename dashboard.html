@@ -288,13 +288,11 @@
             opacity: 0.4;
             z-index: 0;
         }
-        /* スタックがあるときはカード本体をわずかに手前に持ち上げる */
         .student-card.has-multiple {
             margin-bottom: 8px;
             z-index: 2;
         }
         
-        /* 複数ファイルを通知するバッジ（提出済みバッジの上に重ねる、または添える小バッジ） */
         .file-count-badge {
             position: absolute;
             top: -6px;
@@ -313,7 +311,7 @@
             z-index: 10;
         }
 
-        /* ホバー時の詳細ツールチップ（ポップアップ：2行表示対応） */
+        /* ホバー時の詳細ツールチップ（ポップアップ：勝手な折り返しを防ぐ設定） */
         .student-card .card-tooltip {
             visibility: hidden;
             opacity: 0;
@@ -328,7 +326,7 @@
             border-radius: 6px;
             font-size: 11px;
             font-weight: 500;
-            white-space: pre-line;
+            white-space: pre; /* ここを変更：ファイル名途中の自動折り返しを完全に禁止し、指定した改行のみにする */
             line-height: 1.5;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
             z-index: 1000;
@@ -662,11 +660,10 @@
                 }
             });
 
-            // 学生マップを配列に変換し、提出数を集計
             Object.values(taskMap).forEach(task => {
                 task.students = Object.values(task.studentsMap);
                 task.totalCount = task.students.length;
-                task.submittedCount = task.students.filter(st => st.isSubmitted).count ? task.students.filter(st => st.isSubmitted).length : task.students.filter(st => st.isSubmitted).length;
+                task.submittedCount = task.students.filter(st => st.isSubmitted).length;
             });
 
             allTasksData = Object.values(taskMap);
@@ -824,23 +821,20 @@
                         badge = '<span class="badge-submitted">提出済み</span>';
                     }
 
-                    // 複数ファイルがある場合はスタック用のクラスとファイル数バッジを追加
                     if (st.fileNames && st.fileNames.length > 1) {
                         cardClass += ' has-multiple';
                         badge += '<div class="file-count-badge">' + st.fileNames.length + '</div>';
                     }
 
-                    // 一番上の行（先頭の数個）は上にスペースがないため、自動で下にツールチップを出すクラスを付与
                     if (stIdx < 6) {
                         cardClass += ' tooltip-down';
                     }
 
-                    // ツールチップの内容（複数ある場合は新しい順に上からリスト表示）
+                    // ツールチップの内容（ファイル名が途中で折り返されないように改行位置を明確に）
                     let fileDisplay = 'なし';
                     if (st.fileNames && st.fileNames.length > 0) {
-                        // 配列のまま（または新しい順に）結合
                         fileDisplay = st.fileNames.join('\n・');
-                        if (st.fileNames.length > 1) {
+                        if (st.fileNames.length > 0) {
                             fileDisplay = '\n・' + fileDisplay;
                         }
                     }
@@ -864,11 +858,9 @@
             tbody.innerHTML = html;
             document.getElementById('dashboard-table').style.display = 'table';
 
-            // 描画されたカードの文字スケール調整を実行
             setTimeout(adjustCardNames, 10);
         }
 
-        // カードが描画された後に文字数に応じてスケール（横幅縮小）を自動調整する処理
         function adjustCardNames() {
             document.querySelectorAll('.student-card-name').forEach(el => {
                 const parent = el.parentElement;
@@ -888,11 +880,11 @@
             if (detailRow.classList.contains('active')) {
                 detailRow.classList.remove('active');
                 mainRow.classList.remove('expanded');
-                expandedRowKeys.delete(taskKey); // 開き状態を削除
+                expandedRowKeys.delete(taskKey);
             } else {
                 detailRow.classList.add('active');
                 mainRow.classList.add('expanded');
-                expandedRowKeys.add(taskKey); // 開き状態を記録
+                expandedRowKeys.add(taskKey);
                 setTimeout(adjustCardNames, 10);
             }
         }
