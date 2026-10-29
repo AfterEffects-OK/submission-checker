@@ -165,13 +165,14 @@
             border-color: #cbd5e1;
         }
         .student-card-name {
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 15px; /* 文字サイズを拡大 */
             color: var(--text-main);
-            overflow: hidden;
-            text-overflow: ellipsis;
             white-space: nowrap;
             margin-right: 8px;
+            /* 長い文字の場合に横幅を縮小してカード内に収める */
+            transform-origin: left center;
+            display: inline-block;
         }
 
         /* 提出済み・未提出のバッジ (index.html 準拠) */
@@ -183,6 +184,7 @@
             font-size: 11px;
             font-weight: 700;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .badge-unsubmitted {
             background: #fee2e2;
@@ -192,6 +194,7 @@
             font-size: 11px;
             font-weight: 700;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .td-lecture {
@@ -449,7 +452,7 @@
                 html += '</td>';
                 html += '</tr>';
 
-                // 学生カード（最大幅200px自動レイアウト）
+                // 学生カード展開行
                 html += '<tr class="detail-row" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
@@ -464,7 +467,10 @@
                         : '<span class="badge-unsubmitted">未提出</span>';
 
                     html += '<div class="student-card">';
+                    // 文字数が多い場合は自動で横幅が縮小して収まるようにラッパー要素で制御
+                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 8px;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
+                    html += '</div>';
                     html += badge;
                     html += '</div>';
                 });
@@ -479,6 +485,20 @@
             document.getElementById('dashboard-table').style.display = 'table';
         }
 
+        // カードが描画された後に文字数に応じてスケール（横幅縮小）を自動調整する処理
+        function adjustCardNames() {
+            document.querySelectorAll('.student-card-name').forEach(el => {
+                const parent = el.parentElement;
+                // 親要素の幅に対して文字の自然な幅が大きい場合、スケールを縮めて収める
+                if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
+                    const scale = parent.clientWidth / el.scrollWidth;
+                    el.style.transform = `scaleX(${scale})`;
+                } else {
+                    el.style.transform = 'scaleX(1)';
+                }
+            });
+        }
+
         function toggleDetail(rowId, mainRowId) {
             const detailRow = document.getElementById(rowId);
             const mainRow = document.getElementById(mainRowId);
@@ -489,6 +509,8 @@
             } else {
                 detailRow.classList.add('active');
                 mainRow.classList.add('expanded');
+                // アコーディオンが開いた直後にスケール調整を実行
+                setTimeout(adjustCardNames, 10);
             }
         }
 
