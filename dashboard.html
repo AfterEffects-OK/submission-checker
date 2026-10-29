@@ -18,6 +18,7 @@
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             --filter-bg: #f8fafc;
             --sub-bg: #ffffff;
+            --req-color: #0369a1; /* ライトモード時の必須提出カラー（濃い青） */
         }
 
         /* ダークモード時のカラー定義 (body.dark-mode クラスに連動) */
@@ -32,6 +33,7 @@
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             --filter-bg: #0f172a;
             --sub-bg: #1e293b;
+            --req-color: #38bdf8; /* ダークモード時の必須提出カラー（明るく視認性の高いシアン・ブルー） */
         }
 
         body {
@@ -53,7 +55,7 @@
             transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
         
-        /* 最上部ヘッダーエリア（タイトルとコントロールバーを横並び配置） */
+        /* 最上部ヘッダーエリア：タイトルとコントロールバーを同一行に配置 */
         .header-top-flex {
             display: flex;
             justify-content: space-between;
@@ -1157,7 +1159,7 @@
 
             tasks.forEach((task, index) => {
                 const percentage = task.totalCount > 0 ? Math.round((task.submittedCount / task.totalCount) * 100) : 0;
-                let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: var(--text-muted);';
+                let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: var(--req-color); font-weight: 700;' : 'color: var(--text-muted);';
                 let formattedLecture = escapeHtml(task.lecture).replace(/\(/g, '<wbr>(').replace(/（/g, '<wbr>（');
 
                 const rowId = 'detail-row-' + index;
@@ -1278,7 +1280,7 @@
 
             tasks.forEach((task, index) => {
                 const percentage = task.totalCount > 0 ? Math.round((task.submittedCount / task.totalCount) * 100) : 0;
-                let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: var(--text-muted);';
+                let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: var(--req-color); font-weight: 700;' : 'color: var(--text-muted);';
                 
                 const taskKey = task.lecture + '_' + task.kadaiName;
                 const isExpanded = expandedRowKeys.has(taskKey);
