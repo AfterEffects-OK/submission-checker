@@ -145,10 +145,10 @@
             gap: 6px;
         }
 
-        /* 学生カードの4列グリッドレイアウト */
+        /* 学生カードの自動グリッドレイアウト（最大幅200px制限） */
         .student-cards-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(150px, 200px));
             gap: 12px;
         }
         .student-card {
@@ -449,7 +449,7 @@
                 html += '</td>';
                 html += '</tr>';
 
-                // 学生氏名・提出状態をカード化して4列に並べるセクション
+                // 学生カード（最大幅200px自動レイアウト）
                 html += '<tr class="detail-row" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
