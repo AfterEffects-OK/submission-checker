@@ -254,6 +254,7 @@
             gap: 12px;
         }
         .student-card {
+            position: relative; /* ホバー詳細表示の基準位置 */
             border-radius: 8px;
             padding: 12px 14px;
             display: flex;
@@ -262,6 +263,45 @@
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
         
+        /* ホバー時の詳細ツールチップ（ポップアップ） */
+        .student-card .card-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background-color: #0f172a;
+            color: #f8fafc;
+            text-align: left;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+        }
+        /* ツールチップの三角形矢印 */
+        .student-card .card-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #0f172a transparent transparent transparent;
+        }
+        /* カードにホバーしたときにツールチップを表示 */
+        .student-card:hover .card-tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* 提出済みカード（非常に薄い緑） */
         .student-card.submitted {
             background: rgba(16, 185, 129, 0.08);
@@ -671,7 +711,7 @@
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
                 
-                // ヘッダー部分（タイトルとGoogleドライブフォルダへのリンクボタン：フォルダIDが有効な値の場合のみ表示）
+                // ヘッダー部分（タイトルとGoogleドライブフォルダへのリンクボタン）
                 html += '<div class="detail-header-flex">';
                 html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
                 
@@ -702,7 +742,11 @@
                         badge = '<span class="badge-submitted">提出済み</span>';
                     }
 
+                    // ツールチップに表示する詳細データ（ファイル名など）
+                    let tooltipText = '学生名: ' + st.name + ' / 提出ファイル: ' + (st.fileName && st.fileName !== '-' ? st.fileName : 'なし');
+
                     html += '<div class="' + cardClass + '">';
+                    html += '<div class="card-tooltip">' + escapeHtml(tooltipText) + '</div>';
                     html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
                     html += '</div>';
