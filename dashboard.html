@@ -152,14 +152,16 @@
             // 「すべて」ボタンを残して他をクリア
             filterContainer.innerHTML = '<button class="filter-btn active" data-filter="すべて" onclick="filterTable(\'すべて\', this)">すべて</button>';
 
-            // 課題名の一覧からボタンを生成
-            tasks.forEach(task => {
+            // 重複のない課題名のリストを作成してボタンを生成
+            const uniqueKadaiNames = [...new Set(tasks.map(t => t.kadaiName))];
+
+            uniqueKadaiNames.forEach(kadaiName => {
                 const btn = document.createElement('button');
                 btn.className = 'filter-btn';
-                btn.dataset.filter = task.kadaiName;
-                btn.textContent = task.kadaiName;
+                btn.dataset.filter = kadaiName;
+                btn.textContent = kadaiName;
                 btn.onclick = function() {
-                    filterTable(task.kadaiName, this);
+                    filterTable(kadaiName, this);
                 };
                 filterContainer.appendChild(btn);
             });
