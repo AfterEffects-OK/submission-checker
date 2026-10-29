@@ -84,7 +84,7 @@
             border-color: var(--primary);
         }
 
-        /* プルダウンフィルターエリア（講義名 → 課題の順に配置） */
+        /* プルダウンフィルターエリア */
         .filter-section {
             display: flex;
             gap: 16px;
@@ -371,10 +371,10 @@
             </button>
         </div>
 
-        <!-- プルダウンによる絞り込みエリア（講義名 → 課題タイトルの順） -->
+        <!-- プルダウンによる絞り込みエリア -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="lecture-select">講義名タイトル / 講義名</label>
+                <label for="lecture-select">講義名</label>
                 <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
                     <option value="すべて">すべて</option>
                 </select>
