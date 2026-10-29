@@ -322,7 +322,7 @@
             border-color: var(--primary);
         }
 
-        /* 学生カード一覧のヘッダーバー（4つのパーツを1行で横並び） */
+        /* 学生カード一覧のヘッダーバー（4つのパーツを指定順で横並び） */
         .student-controls-bar {
             display: flex;
             justify-content: space-between;
@@ -1259,7 +1259,7 @@
             renderDashboard(filtered);
         }
 
-        // --- 学生配列の並べ替えロジック ---
+        // --- 学生配列の並べ替えロジック（氏名順はふりがな基準、無い場合は氏名でソート） ---
         function sortStudents(students, sortMode) {
             const sorted = [...students];
             if (sortMode === 'status_asc') {
@@ -1272,7 +1272,10 @@
                     const pA = getPriority(a);
                     const pB = getPriority(b);
                     if (pA !== pB) return pA - pB;
-                    return a.name.localeCompare(b.name, 'ja');
+                    // 同ステータス内はふりがな（なければ氏名）でソート
+                    const keyA = a.ruby || a.name;
+                    const keyB = b.ruby || b.name;
+                    return keyA.localeCompare(keyB, 'ja');
                 });
             } else if (sortMode === 'status_desc') {
                 sorted.sort((a, b) => {
@@ -1284,10 +1287,17 @@
                     const pA = getPriority(a);
                     const pB = getPriority(b);
                     if (pA !== pB) return pA - pB;
-                    return a.name.localeCompare(b.name, 'ja');
+                    const keyA = a.ruby || a.name;
+                    const keyB = b.ruby || b.name;
+                    return keyA.localeCompare(keyB, 'ja');
                 });
             } else {
-                sorted.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+                // 氏名順（ふりがな基準）
+                sorted.sort((a, b) => {
+                    const keyA = a.ruby || a.name;
+                    const keyB = b.ruby || b.name;
+                    return keyA.localeCompare(keyB, 'ja');
+                });
             }
             return sorted;
         }
@@ -1297,26 +1307,28 @@
             renderMobileCards(tasks);
         }
 
-        // --- 共通学生カードHTML生成ヘルパー（4つのパーツを1行に横並び配置） ---
+        // --- 共通学生カードHTML生成ヘルパー（指定順：課題タイトル ➔ 再取得 ➔ ドライブ ➔ 並べ替え） ---
         function generateStudentCardsHtml(task, taskKey) {
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
 
             let html = '';
 
-            // 1行のヘッダーバーに4つのパーツを格納
             html += '<div class="student-controls-bar">';
             
-            // 左側パーツ（1: 個別リロードボタン, 2: ドライブフォルダを開くボタン）
+            // 左側パーツ 1 & 2：課題タイトル、個別リロードボタン
             html += '<div class="student-header-left">';
+            html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
             
-            // パーツ①：再取得ボタン
             html += '<button class="reload-btn" onclick="event.stopPropagation(); reloadTask(\'' + escapeHtml(task.lecture) + '\', \'' + escapeHtml(task.kadaiName) + '\', this);" title="この課題の状況を再取得">';
             html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
             html += '再取得';
             html += '</button>';
+            html += '</div>';
 
-            // パーツ②：Googleドライブフォルダを開くボタン
+            // 右側パーツ 3 & 4：Googleドライブを開くボタン、並べ替えセレクトボックス
+            html += '<div class="student-header-right">';
+            
             if (trimmedFolderId !== '' && trimmedFolderId !== '-') {
                 const folderUrl = 'https://drive.google.com/drive/folders/' + encodeURIComponent(trimmedFolderId);
                 html += '<a href="' + folderUrl + '" target="_blank" class="folder-link-btn" onclick="event.stopPropagation();">';
@@ -1325,15 +1337,6 @@
                 html += '</a>';
             }
 
-            html += '</div>';
-
-            // 右側パーツ（3: 課題タイトルの学生別提出状況, 4: 並べ替えセレクトボックス）
-            html += '<div class="student-header-right">';
-            
-            // パーツ③：課題タイトル表示
-            html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
-            
-            // パーツ④：並べ替えプルダウン
             html += '<div class="student-sort-group">';
             html += '<label for="student-sort-' + escapeHtml(taskKey) + '">並べ替え:</label>';
             html += '<select id="student-sort-' + escapeHtml(taskKey) + '" class="student-sort-select" onchange="onStudentSortChange(\'' + escapeHtml(taskKey) + '\', this)">';
