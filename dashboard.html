@@ -35,30 +35,42 @@
         h2 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
         p.subtitle { margin: 0 0 24px 0; color: var(--text-muted); font-size: 15px; }
 
-        /* フィルターボタンエリア */
-        #filter-buttons {
-            margin-bottom: 24px;
+        /* プルダウンフィルターエリア */
+        .filter-section {
             display: flex;
-            gap: 8px;
+            gap: 16px;
             flex-wrap: wrap;
+            margin-bottom: 24px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
         }
-        .filter-btn {
-            padding: 8px 16px;
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .filter-select {
+            padding: 10px 14px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             background: #fff;
             color: var(--text-main);
-            cursor: pointer;
-            font-weight: 600;
             font-size: 14px;
-            transition: all 0.2s ease;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s ease;
         }
-        .filter-btn.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-        .filter-btn:hover {
+        .filter-select:focus {
             border-color: var(--primary);
         }
 
@@ -136,9 +148,26 @@
         <h2>課題別 提出状況ダッシュボード</h2>
         <p class="subtitle">すべての課題ごとの提出状況と提出率を一覧で確認します。</p>
 
-        <!-- 課題名ごとのフィルターボタンが自動でここに並びます -->
-        <div id="filter-buttons">
-            <button class="filter-btn active" data-filter="すべて" onclick="filterTable('すべて', this)">すべて</button>
+        <!-- プルダウンによる絞り込みエリア -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="term-select">講義年度・期</label>
+                <select id="term-select" class="filter-select" onchange="applyFilters()">
+                    <option value="すべて">すべて</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="lecture-select">科目名（講義名）</label>
+                <select id="lecture-select" class="filter-select" onchange="applyFilters()">
+                    <option value="すべて">すべて</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="kadai-select">課題タイトル</label>
+                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
+                    <option value="すべて">すべて</option>
+                </select>
+            </div>
         </div>
 
         <div id="loading">
@@ -150,7 +179,7 @@
             <table id="dashboard-table" style="display: none;">
                 <thead>
                     <tr>
-                        <th>講義名</th>
+                        <th>科目名</th>
                         <th>課題タイトル</th>
                         <th>提出期限</th>
                         <th>区分</th>
@@ -165,13 +194,11 @@
     </div>
 
     <script>
-        // バックエンド（GAS）のWebアプリURL（既存のURLをそのまま使用）
+        // バックエンド（GAS）のWebアプリURL
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
-        let allTasksData = []; // 取得した全タスクデータを保持
-        let currentFilter = 'すべて';
+        let allTasksData = [];
 
-        // ページ読み込み時に自動で全データを取得
         window.addEventListener('DOMContentLoaded', function() {
             fetch(GAS_URL + '?keyword=')
                 .then(response => response.json())
@@ -184,7 +211,6 @@
                 });
         });
 
-        // データを課題ごとにグループ化して集計する関数
         function processData(results) {
             if (!results || results.length === 0) {
                 document.getElementById('loading').innerHTML = 'データが見つかりませんでした。';
@@ -197,6 +223,7 @@
                 if (!taskMap[key]) {
                     taskMap[key] = {
                         lecture: r.submitDate,
+                        term: r.term || 'その他',
                         kadaiName: r.kadaiName,
                         deadline: r.deadline,
                         requirement: r.requirement,
@@ -215,55 +242,61 @@
 
             allTasksData = Object.values(taskMap);
 
-            // 課題ごとのフィルターボタンを生成
-            generateFilterButtons(allTasksData);
+            // プルダウンの選択肢を自動生成
+            populateDropdowns(allTasksData);
 
-            // テーブルを描画
+            // 初期表示（全件）
             renderDashboard(allTasksData);
         }
 
-        // 課題名ごとのボタンを自動生成する関数
-        function generateFilterButtons(tasks) {
-            const filterContainer = document.getElementById('filter-buttons');
-            
-            // 「すべて」ボタンを残して他をクリア
-            filterContainer.innerHTML = '<button class="filter-btn active" data-filter="すべて" onclick="filterTable(\'すべて\', this)">すべて</button>';
+        // プルダウンに重複のない選択肢をセットする関数
+        function populateDropdowns(tasks) {
+            const termSelect = document.getElementById('term-select');
+            const lectureSelect = document.getElementById('lecture-select');
+            const kadaiSelect = document.getElementById('kadai-select');
 
-            // 重複のない課題名のリストを作成
-            const uniqueKadaiNames = [...new Set(tasks.map(t => t.kadaiName))];
+            const terms = [...new Set(tasks.map(t => t.term))].sort();
+            const lectures = [...new Set(tasks.map(t => t.lecture))].sort();
+            const kadais = [...new Set(tasks.map(t => t.kadaiName))].sort();
 
-            uniqueKadaiNames.forEach(kadaiName => {
-                const btn = document.createElement('button');
-                btn.className = 'filter-btn';
-                btn.dataset.filter = kadaiName;
-                btn.textContent = kadaiName;
-                btn.onclick = function() {
-                    filterTable(kadaiName, this);
-                };
-                filterContainer.appendChild(btn);
+            terms.forEach(term => {
+                const opt = document.createElement('option');
+                opt.value = term;
+                opt.textContent = term;
+                termSelect.appendChild(opt);
+            });
+
+            lectures.forEach(lec => {
+                const opt = document.createElement('option');
+                opt.value = lec;
+                opt.textContent = lec;
+                lectureSelect.appendChild(opt);
+            });
+
+            kadais.forEach(kadai => {
+                const opt = document.createElement('option');
+                opt.value = kadai;
+                opt.textContent = kadai;
+                kadaiSelect.appendChild(opt);
             });
         }
 
-        // ボタンクリック時の絞り込み処理
-        function filterTable(targetKadai, clickedBtn) {
-            currentFilter = targetKadai;
+        // プルダウンが変更されたときの絞り込み処理
+        function applyFilters() {
+            const selectedTerm = document.getElementById('term-select').value;
+            const selectedLecture = document.getElementById('lecture-select').value;
+            const selectedKadai = document.getElementById('kadai-select').value;
 
-            // ボタンのアクティブ状態を切り替え
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
+            const filtered = allTasksData.filter(t => {
+                const matchTerm = (selectedTerm === 'すべて' || t.term === selectedTerm);
+                const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
+                const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
+                return matchTerm && matchLecture && matchKadai;
             });
-            clickedBtn.classList.add('active');
 
-            // データのフィルタリングと描画
-            if (targetKadai === 'すべて') {
-                renderDashboard(allTasksData);
-            } else {
-                const filtered = allTasksData.filter(t => t.kadaiName === targetKadai);
-                renderDashboard(filtered);
-            }
+            renderDashboard(filtered);
         }
 
-        // ダッシュボードのテーブルを描画する関数
         function renderDashboard(tasks) {
             const tbody = document.getElementById('dashboard-body');
             let html = '';
