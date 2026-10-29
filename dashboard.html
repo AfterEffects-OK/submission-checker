@@ -152,6 +152,16 @@
             font-size: 13px;
             white-space: nowrap;
         }
+        /* ソート可能なヘッダーのスタイル */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        th.sortable:hover {
+            color: var(--primary);
+            background-color: rgba(5, 150, 105, 0.05);
+        }
         tr:last-child > td { border-bottom: none; }
         
         /* 行クリックのインタラクティブ演出 */
@@ -363,16 +373,15 @@
 
         <!-- プルダウンによる絞り込みエリア（課題タイトルを左側に配置） -->
         <div class="filter-section">
-            
             <div class="filter-group">
-                <label for="lecture-select">科目名 / 講義名</label>
-                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
+                <label for="kadai-select">課題タイトル</label>
+                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="kadai-select">課題タイトル</label>
-                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
+                <label for="lecture-select">科目名 / 講義名</label>
+                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
@@ -390,7 +399,7 @@
                         <th>科目名</th>
                         <th>課題タイトル</th>
                         <th>提出期限</th>
-                        <th>区分</th>
+                        <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement">↕</span></th>
                         <th style="text-align: center;">提出状況 (提出数 / 対象者数)</th>
                         <th style="text-align: center;">提出率</th>
                     </tr>
@@ -450,6 +459,7 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
+        let currentSortDirection = 'asc'; // 'asc' または 'desc'
 
         window.addEventListener('DOMContentLoaded', function() {
             fetch(GAS_URL + '?mode=dashboard')
@@ -504,7 +514,7 @@
             allTasksData = Object.values(taskMap);
 
             updateDropdowns(allTasksData);
-            renderDashboard(allTasksData);
+            applyFilters();
         }
 
         function updateDropdowns(tasks) {
@@ -554,6 +564,34 @@
                 const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
                 const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
                 return matchLecture && matchKadai;
+            });
+
+            renderDashboard(filtered);
+        }
+
+        // 区分列でのソート処理
+        function sortTable(column) {
+            currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            
+            const icon = document.getElementById('sort-icon-' + column);
+            if (icon) {
+                icon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+            }
+
+            const selectedLecture = document.getElementById('lecture-select').value;
+            const selectedKadai = document.getElementById('kadai-select').value;
+
+            const filtered = allTasksData.filter(t => {
+                const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
+                const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
+                return matchLecture && matchKadai;
+            });
+
+            filtered.sort((a, b) => {
+                let valA = a[column] || '';
+                let valB = b[column] || '';
+                let comparison = valA.localeCompare(valB, 'ja');
+                return currentSortDirection === 'asc' ? comparison : -comparison;
             });
 
             renderDashboard(filtered);
