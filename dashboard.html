@@ -511,11 +511,15 @@
                 gap: 12px;
                 padding: 12px;
             }
+            /* スマホでも「ラベル」と「プルダウンリスト」を横並びにする修正 */
             .filter-group {
                 min-width: 100%;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 4px;
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+            }
+            .filter-group label {
+                min-width: 75px; /* ラベルの幅を固定して綺麗にそろえる */
             }
             .filter-select {
                 width: 100%;
@@ -994,7 +998,7 @@
             setTimeout(adjustCardNames, 10);
         }
 
-        // --- スマホ用カードビューのレンダリング（提出状況と棒グラフを横並び） ---
+        // --- スマホ用カードビューのレンダリング ---
         function renderMobileCards(tasks) {
             const container = document.getElementById('mobile-cards-container');
             let html = '';
@@ -1028,16 +1032,13 @@
                 }
                 html += '</div>';
 
-                // 提出状況テキストとプログレスバーを横並びにするレイアウト
                 html += '<div class="mobile-progress-row">';
                 html += '<div class="mobile-progress-text">提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</div>';
                 html += '<div class="mobile-progress-bar-container"><div style="background: var(--primary); height: 100%; width: ' + percentage + '%;"></div></div>';
                 html += '</div>';
 
-                // 展開ボタン
                 html += '<button class="mobile-toggle-btn" onclick="toggleMobileDetail(\'' + escapeHtml(taskKey) + '\')">' + btnText + '</button>';
 
-                // 展開される学生カード一覧
                 html += '<div class="' + containerClass + '" id="mobile-detail-' + index + '">';
                 html += '<div class="student-cards-grid">';
 
@@ -1075,9 +1076,9 @@
                     html += '</div>';
                 });
 
-                html += '</div>'; // student-cards-grid
-                html += '</div>'; // mobile-students-container
-                html += '</div>'; // mobile-task-card
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
             });
 
             container.innerHTML = html;
