@@ -360,7 +360,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-left: auto; /* 右寄せ */
+            margin-left: 0; /* 左側（タイトルと同一行）に配置 */
         }
         .student-sort-group label {
             font-size: 12px;
@@ -971,7 +971,7 @@
         let currentSortColumn = 'requirement';
         let currentSortDirection = 'asc';
         let expandedRowKeys = new Set();
-        // 各課題ごとの学生カードの並び順保持用 (key: taskKey, value: 'name' | 'status')
+        // 各課題ごとの学生カードの並び順保持用 (key: taskKey, value: 'name' | 'status_asc' | 'status_desc')
         let studentSortPreferences = {};
 
         window.addEventListener('DOMContentLoaded', function() {
@@ -1264,13 +1264,24 @@
         // --- 学生配列の並べ替えロジック ---
         function sortStudents(students, sortMode) {
             const sorted = [...students];
-            if (sortMode === 'status') {
-                // 提出状態順： 1.未提出, 2.評価不能, 3.提出済み (さらに同ステータス内は氏名順)
+            if (sortMode === 'status_asc') {
                 sorted.sort((a, b) => {
                     const getPriority = (st) => {
-                        if (!st.isSubmitted && st.status !== '評価不能' && st.status !== '判定不能') return 1; // 未提出
-                        if (st.status === '評価不能' || st.status === '判定不能') return 2; // 評価不能
-                        return 3; // 提出済み
+                        if (!st.isSubmitted && st.status !== '評価不能' && st.status !== '判定不能') return 1;
+                        if (st.status === '評価不能' || st.status === '判定不能') return 2;
+                        return 3;
+                    };
+                    const pA = getPriority(a);
+                    const pB = getPriority(b);
+                    if (pA !== pB) return pA - pB;
+                    return a.name.localeCompare(b.name, 'ja');
+                });
+            } else if (sortMode === 'status_desc') {
+                sorted.sort((a, b) => {
+                    const getPriority = (st) => {
+                        if (st.isSubmitted) return 1;
+                        if (st.status === '評価不能' || st.status === '判定不能') return 2;
+                        return 3;
                     };
                     const pA = getPriority(a);
                     const pB = getPriority(b);
@@ -1278,7 +1289,6 @@
                     return a.name.localeCompare(b.name, 'ja');
                 });
             } else {
-                // デフォルト：氏名順 (あいうえお順)
                 sorted.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
             }
             return sorted;
@@ -1294,7 +1304,7 @@
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             let html = '';
 
-            // 学生カード上部コントロールバー
+            // 学生カード上部コントロールバー（タイトルと並べ替えを同一行に横並び配置）
             html += '<div class="student-controls-bar">';
             html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
             
@@ -1302,7 +1312,8 @@
             html += '<label for="student-sort-' + escapeHtml(taskKey) + '">並べ替え:</label>';
             html += '<select id="student-sort-' + escapeHtml(taskKey) + '" class="student-sort-select" onchange="onStudentSortChange(\'' + escapeHtml(taskKey) + '\', this)">';
             html += '<option value="name"' + (currentSortMode === 'name' ? ' selected' : '') + '>氏名順</option>';
-            html += '<option value="status"' + (currentSortMode === 'status' ? ' selected' : '') + '>提出状況順</option>';
+            html += '<option value="status_asc"' + (currentSortMode === 'status_asc' ? ' selected' : '') + '>提出状況順 (昇順)</option>';
+            html += '<option value="status_desc"' + (currentSortMode === 'status_desc' ? ' selected' : '') + '>提出状況順 (降順)</option>';
             html += '</select>';
             html += '</div>';
 
