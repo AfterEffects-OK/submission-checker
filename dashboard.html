@@ -51,7 +51,7 @@
             flex-direction: column;
             gap: 6px;
             flex: 1;
-            min-width: 200px;
+            min-width: 250px;
         }
         .filter-group label {
             font-size: 13px;
@@ -148,14 +148,8 @@
         <h2>課題別 提出状況ダッシュボード</h2>
         <p class="subtitle">すべての課題ごとの提出状況と提出率を一覧で確認します。</p>
 
-        <!-- プルダウンによる絞り込みエリア -->
+        <!-- プルダウンによる絞り込みエリア（講義年度を廃止） -->
         <div class="filter-section">
-            <div class="filter-group">
-                <label for="year-select">講義年度</label>
-                <select id="year-select" class="filter-select" onchange="onYearChange()">
-                    <option value="すべて">すべて</option>
-                </select>
-            </div>
             <div class="filter-group">
                 <label for="lecture-select">科目名 / 講義名</label>
                 <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
@@ -179,7 +173,6 @@
             <table id="dashboard-table" style="display: none;">
                 <thead>
                     <tr>
-                        <th>講義年度</th>
                         <th>科目名</th>
                         <th>課題タイトル</th>
                         <th>提出期限</th>
@@ -219,15 +212,12 @@
 
             const taskMap = {};
             results.forEach(r => {
-                // バックエンドの term は講義年度、submitDate は科目名を表す
-                const yearVal = r.term || 'その他';
                 const lectureVal = r.submitDate || 'その他';
                 const kadaiVal = r.kadaiName || 'その他';
-                const key = yearVal + '_' + lectureVal + '_' + kadaiVal;
+                const key = lectureVal + '_' + kadaiVal;
 
                 if (!taskMap[key]) {
                     taskMap[key] = {
-                        year: yearVal,
                         lecture: lectureVal,
                         kadaiName: kadaiVal,
                         deadline: r.deadline || '-',
@@ -253,31 +243,14 @@
 
         // プルダウンの選択肢を連動して更新する関数
         function updateDropdowns(tasks) {
-            const yearSelect = document.getElementById('year-select');
             const lectureSelect = document.getElementById('lecture-select');
             const kadaiSelect = document.getElementById('kadai-select');
 
-            const currentYear = yearSelect.value;
             const currentLecture = lectureSelect.value;
             const currentKadai = kadaiSelect.value;
 
-            // 1. 講義年度の選択肢
-            const years = [...new Set(allTasksData.map(t => t.year))].sort().reverse();
-            yearSelect.innerHTML = '<option value="すべて">すべて</option>';
-            years.forEach(yr => {
-                const opt = document.createElement('option');
-                opt.value = yr;
-                opt.textContent = yr;
-                yearSelect.appendChild(opt);
-            });
-            yearSelect.value = years.includes(currentYear) ? currentYear : 'すべて';
-
-            // 2. 科目名の選択肢（講義年度で絞り込む）
-            const filteredByYear = (yearSelect.value === 'すべて') 
-                ? allTasksData 
-                : allTasksData.filter(t => t.year === yearSelect.value);
-            
-            const lectures = [...new Set(filteredByYear.map(t => t.lecture))].sort();
+            // 1. 科目名の選択肢（全体からユニーク抽出）
+            const lectures = [...new Set(allTasksData.map(t => t.lecture))].sort();
             lectureSelect.innerHTML = '<option value="すべて">すべて</option>';
             lectures.forEach(lec => {
                 const opt = document.createElement('option');
@@ -287,10 +260,10 @@
             });
             lectureSelect.value = lectures.includes(currentLecture) ? currentLecture : 'すべて';
 
-            // 3. 課題タイトルの選択肢（講義年度 ＆ 科目名で絞り込む）
+            // 2. 課題タイトルの選択肢（科目名で絞り込む）
             const filteredByLecture = (lectureSelect.value === 'すべて') 
-                ? filteredByYear 
-                : filteredByYear.filter(t => t.lecture === lectureSelect.value);
+                ? allTasksData 
+                : allTasksData.filter(t => t.lecture === lectureSelect.value);
 
             const kadais = [...new Set(filteredByLecture.map(t => t.kadaiName))].sort();
             kadaiSelect.innerHTML = '<option value="すべて">すべて</option>';
@@ -303,12 +276,6 @@
             kadaiSelect.value = kadais.includes(currentKadai) ? currentKadai : 'すべて';
         }
 
-        // 講義年度が変更されたとき
-        function onYearChange() {
-            updateDropdowns(allTasksData);
-            applyFilters();
-        }
-
         // 科目名が変更されたとき
         function onLectureChange() {
             updateDropdowns(allTasksData);
@@ -317,15 +284,13 @@
 
         // 絞り込み条件に合致するデータを抽出してテーブル描画
         function applyFilters() {
-            const selectedYear = document.getElementById('year-select').value;
             const selectedLecture = document.getElementById('lecture-select').value;
             const selectedKadai = document.getElementById('kadai-select').value;
 
             const filtered = allTasksData.filter(t => {
-                const matchYear = (selectedYear === 'すべて' || t.year === selectedYear);
                 const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
                 const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
-                return matchYear && matchLecture && matchKadai;
+                return matchLecture && matchKadai;
             });
 
             renderDashboard(filtered);
@@ -336,7 +301,7 @@
             let html = '';
 
             if (tasks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">該当するデータが見つかりませんでした。</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">該当するデータが見つかりませんでした。</td></tr>';
                 document.getElementById('dashboard-table').style.display = 'table';
                 return;
             }
@@ -346,7 +311,6 @@
                 let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: #64748b;';
 
                 html += '<tr>';
-                html += '<td style="font-weight: 600; color: var(--text-muted);">' + escapeHtml(task.year) + '</td>';
                 html += '<td style="font-weight: 600;">' + escapeHtml(task.lecture) + '</td>';
                 html += '<td style="font-weight: 700;">' + escapeHtml(task.kadaiName) + '</td>';
                 html += '<td style="color: var(--text-muted);">' + escapeHtml(task.deadline) + '</td>';
