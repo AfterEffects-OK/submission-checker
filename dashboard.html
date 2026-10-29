@@ -216,6 +216,12 @@
             gap: 12px;
             margin-bottom: 16px;
         }
+        .detail-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
         .detail-title {
             font-size: 13px;
             font-weight: 700;
@@ -226,6 +232,39 @@
             margin: 0;
         }
         
+        /* 個別リロードボタンのスタイル */
+        .reload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--filter-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        .reload-btn:hover {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .reload-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .reload-btn.loading svg {
+            animation: spin 0.8s linear infinite;
+        }
+
         /* ドライブフォルダリンクボタンのスタイル */
         .folder-link-btn {
             display: inline-flex;
@@ -620,13 +659,12 @@
                 display: block;
             }
 
-            /* スマホ表示での学生カードグリッドの行間（gap）を狭く調整 */
             .student-cards-grid {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-                gap: 6px; /* 行間・列間を狭く設定 */
+                gap: 6px;
             }
             .student-card {
-                padding: 8px 10px; /* カード内部の余白も少しコンパクトに */
+                padding: 8px 10px;
             }
             .student-card-name {
                 font-size: 16px;
@@ -738,6 +776,10 @@
         let expandedRowKeys = new Set();
 
         window.addEventListener('DOMContentLoaded', function() {
+            loadAllData();
+        });
+
+        function loadAllData() {
             fetch(GAS_URL + '?mode=dashboard')
                 .then(response => response.json())
                 .then(data => {
@@ -747,7 +789,79 @@
                 .catch(error => {
                     document.getElementById('loading').innerHTML = 'データ取得エラーが発生しました: ' + error.message;
                 });
-        });
+        }
+
+        // --- 個別タスクリロード関数 ---
+        function reloadTask(lecture, kadaiName, btnElement) {
+            if (btnElement.classList.contains('loading')) return;
+            btnElement.classList.add('loading');
+
+            fetch(GAS_URL + '?mode=dashboard')
+                .then(response => response.json())
+                .then(data => {
+                    btnElement.classList.remove('loading');
+                    if (!data || data.length === 0) return;
+
+                    // 再構築
+                    const taskMap = {};
+                    data.forEach(r => {
+                        const lectureVal = r.submitDate || 'その他';
+                        const kadaiVal = r.kadaiName || 'その他';
+                        const key = lectureVal + '_' + kadaiVal;
+
+                        if (!taskMap[key]) {
+                            taskMap[key] = {
+                                lecture: lectureVal,
+                                kadaiName: kadaiVal,
+                                deadline: r.deadline || '-',
+                                requirement: r.requirement || '-',
+                                folderId: r.folderId || '',
+                                totalCount: 0,
+                                submittedCount: 0,
+                                studentsMap: {}
+                            };
+                        }
+
+                        const studentName = r.studentName;
+                        if (!taskMap[key].studentsMap[studentName]) {
+                            taskMap[key].studentsMap[studentName] = {
+                                name: studentName,
+                                status: r.isSubmitted,
+                                isSubmitted: false,
+                                fileNames: []
+                            };
+                        }
+
+                        const stObj = taskMap[key].studentsMap[studentName];
+                        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+                        if (isOriginalSubmitted) {
+                            stObj.isSubmitted = true;
+                        }
+                        if (r.status === '評価不能' || r.status === '判定不能') {
+                            stObj.status = r.status;
+                        }
+
+                        if (r.fileName && r.fileName !== '-') {
+                            if (!stObj.fileNames.includes(r.fileName)) {
+                                stObj.fileNames.push(r.fileName);
+                            }
+                        }
+                    });
+
+                    Object.values(taskMap).forEach(task => {
+                        task.students = Object.values(task.studentsMap);
+                        task.totalCount = task.students.length;
+                        task.submittedCount = task.students.filter(st => st.isSubmitted).length;
+                    });
+
+                    allTasksData = Object.values(taskMap);
+                    applyFilters(); // 画面を再描画（アコーディオンの開閉状態やスクロール位置を保持）
+                })
+                .catch(error => {
+                    btnElement.classList.remove('loading');
+                    console.error('個別リロードエラー:', error);
+                });
+        }
 
         function processData(results) {
             if (!results || results.length === 0) {
@@ -930,8 +1044,16 @@
                 html += '<div class="detail-box">';
                 
                 html += '<div class="detail-header-flex">';
+                html += '<div class="detail-title-group">';
                 html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
                 
+                // 個別リロードボタン（PC用）
+                html += '<button class="reload-btn" onclick="event.stopPropagation(); reloadTask(\'' + escapeHtml(task.lecture) + '\', \'' + escapeHtml(task.kadaiName) + '\', this);" title="この課題の状況を再取得">';
+                html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
+                html += '再取得';
+                html += '</button>';
+                html += '</div>'; // detail-title-group
+
                 const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
                 if (trimmedFolderId !== '' && trimmedFolderId !== '-') {
                     const folderUrl = 'https://drive.google.com/drive/folders/' + encodeURIComponent(trimmedFolderId);
@@ -1035,6 +1157,15 @@
                 html += '<button class="mobile-toggle-btn" onclick="toggleMobileDetail(\'' + escapeHtml(taskKey) + '\')">' + btnText + '</button>';
 
                 html += '<div class="' + containerClass + '" id="mobile-detail-' + index + '">';
+                
+                // スマホ用個別リロードボタン
+                html += '<div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">';
+                html += '<button class="reload-btn" onclick="reloadTask(\'' + escapeHtml(task.lecture) + '\', \'' + escapeHtml(task.kadaiName) + '\', this);" title="この課題の状況を再取得">';
+                html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
+                html += '最新の状況に再取得';
+                html += '</button>';
+                html += '</div>';
+
                 html += '<div class="student-cards-grid">';
 
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
