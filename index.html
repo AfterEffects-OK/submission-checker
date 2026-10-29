@@ -550,6 +550,14 @@
     <div id="mobile-card-container"></div>
   </div>
 
+  <footer class="mt-8 pt-8 border-t border-gray-200 text-center">
+      <!-- ホバーで日本語訳に切り替わるテキスト -->
+      <p id="journey-text" class="text-sm text-gray-500" data-ja="学びの旅は、ここから始まる・・・">
+          <span>Your journey of learning begins here.</span> <!-- 初期表示の英語テキスト -->
+      </p>
+      <p class="mt-1 text-xs text-gray-400">&copy; AfterEffects_OK All Rights Reserved.</p>
+  </footer>
+
   <script>
     let allResults = [];
     let currentFilter = getDefaultTerm();
@@ -789,6 +797,23 @@
       }
       cardContainer.innerHTML = cardHtml;
     }
+
+    // --- ホバーで日本語に切り替えるスクリプト ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const journeyText = document.getElementById('journey-text');
+        if (journeyText) {
+            const originalText = journeyText.querySelector('span').textContent;
+            const jaText = journeyText.getAttribute('data-ja');
+
+            journeyText.addEventListener('mouseenter', function() {
+                journeyText.querySelector('span').textContent = jaText;
+            });
+
+            journeyText.addEventListener('mouseleave', function() {
+                journeyText.querySelector('span').textContent = originalText;
+            });
+        }
+    });
 
     function onFailure(error) {
       document.getElementById('loading').style.display = 'none';
