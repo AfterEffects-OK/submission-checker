@@ -252,7 +252,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 190px));
             gap: 12px;
-            position: relative; /* ツールチップのはみ出し制御の基準 */
+            position: relative;
         }
         .student-card {
             position: relative; 
@@ -263,13 +263,62 @@
             align-items: center;
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
+
+        /* 複数ファイルがある場合のスタック（重なり）視覚効果 */
+        .student-card.has-multiple::before,
+        .student-card.has-multiple::after {
+            content: '';
+            position: absolute;
+            left: 3px;
+            right: 3px;
+            bottom: -4px;
+            height: 4px;
+            background: inherit;
+            border: inherit;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            opacity: 0.7;
+            z-index: 1;
+        }
+        .student-card.has-multiple::after {
+            left: 6px;
+            right: 6px;
+            bottom: -8px;
+            height: 4px;
+            opacity: 0.4;
+            z-index: 0;
+        }
+        /* スタックがあるときはカード本体をわずかに手前に持ち上げる */
+        .student-card.has-multiple {
+            margin-bottom: 8px;
+            z-index: 2;
+        }
         
+        /* 複数ファイルを通知するバッジ（提出済みバッジの上に重ねる、または添える小バッジ） */
+        .file-count-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
         /* ホバー時の詳細ツールチップ（ポップアップ：2行表示対応） */
         .student-card .card-tooltip {
             visibility: hidden;
             opacity: 0;
             position: absolute;
-            bottom: 115%;
+            bottom: 125%;
             left: 50%;
             transform: translateX(-50%) translateY(4px);
             background-color: #0f172a;
@@ -279,7 +328,7 @@
             border-radius: 6px;
             font-size: 11px;
             font-weight: 500;
-            white-space: nowrap;
+            white-space: pre-line;
             line-height: 1.5;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
             z-index: 1000;
@@ -289,7 +338,7 @@
         /* 一番上の行など、上方向にはみ出る場合は下に表示するクラス */
         .student-card.tooltip-down .card-tooltip {
             bottom: auto;
-            top: 115%;
+            top: 125%;
             transform: translateX(-50%) translateY(-4px);
         }
         .student-card.tooltip-down .card-tooltip::after {
@@ -582,28 +631,48 @@
                         folderId: r.folderId || '',
                         totalCount: 0,
                         submittedCount: 0,
-                        students: []
+                        studentsMap: {}
                     };
                 }
 
-                taskMap[key].totalCount++;
-                let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
-                if (isOriginalSubmitted) {
-                    taskMap[key].submittedCount++;
+                const studentName = r.studentName;
+                if (!taskMap[key].studentsMap[studentName]) {
+                    taskMap[key].studentsMap[studentName] = {
+                        name: studentName,
+                        status: r.isSubmitted,
+                        isSubmitted: false,
+                        fileNames: []
+                    };
                 }
 
-                taskMap[key].students.push({
-                    name: r.studentName,
-                    status: r.isSubmitted,
-                    isSubmitted: isOriginalSubmitted,
-                    fileName: r.fileName || '-'
-                });
+                const stObj = taskMap[key].studentsMap[studentName];
+                let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+                if (isOriginalSubmitted) {
+                    stObj.isSubmitted = true;
+                }
+                if (r.status === '評価不能' || r.status === '判定不能') {
+                    stObj.status = r.status;
+                }
+
+                // 提出ファイル名がある場合は追加（重複チェック）
+                if (r.fileName && r.fileName !== '-') {
+                    if (!stObj.fileNames.includes(r.fileName)) {
+                        stObj.fileNames.push(r.fileName);
+                    }
+                }
+            });
+
+            // 学生マップを配列に変換し、提出数を集計
+            Object.values(taskMap).forEach(task => {
+                task.students = Object.values(task.studentsMap);
+                task.totalCount = task.students.length;
+                task.submittedCount = task.students.filter(st => st.isSubmitted).count ? task.students.filter(st => st.isSubmitted).length : task.students.filter(st => st.isSubmitted).length;
             });
 
             allTasksData = Object.values(taskMap);
 
             updateDropdowns(allTasksData);
-            applyFilters(); // 読み込み時からソート＆フィルターを適用
+            applyFilters();
         }
 
         function updateDropdowns(tasks) {
@@ -668,7 +737,6 @@
 
         // 区分列でのソート処理
         function sortTable(column) {
-            // 昇順・降順を切り替え
             currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
             
             const icon = document.getElementById('sort-icon-' + column);
@@ -756,14 +824,27 @@
                         badge = '<span class="badge-submitted">提出済み</span>';
                     }
 
+                    // 複数ファイルがある場合はスタック用のクラスとファイル数バッジを追加
+                    if (st.fileNames && st.fileNames.length > 1) {
+                        cardClass += ' has-multiple';
+                        badge += '<div class="file-count-badge">' + st.fileNames.length + '</div>';
+                    }
+
                     // 一番上の行（先頭の数個）は上にスペースがないため、自動で下にツールチップを出すクラスを付与
                     if (stIdx < 6) {
                         cardClass += ' tooltip-down';
                     }
 
-                    // ツールチップに表示する内容（改行を挟んで2行に分割）
-                    let fileDisplay = (st.fileName && st.fileName !== '-' ? st.fileName : 'なし');
-                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '<br>提出ファイル: ' + escapeHtml(fileDisplay);
+                    // ツールチップの内容（複数ある場合は新しい順に上からリスト表示）
+                    let fileDisplay = 'なし';
+                    if (st.fileNames && st.fileNames.length > 0) {
+                        // 配列のまま（または新しい順に）結合
+                        fileDisplay = st.fileNames.join('\n・');
+                        if (st.fileNames.length > 1) {
+                            fileDisplay = '\n・' + fileDisplay;
+                        }
+                    }
+                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                     html += '<div class="' + cardClass + '">';
                     html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
