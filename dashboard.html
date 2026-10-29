@@ -148,14 +148,14 @@
         /* 学生カードの自動グリッドレイアウト（最大幅200px制限） */
         .student-cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 200px));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 200px));
             gap: 12px;
         }
         .student-card {
             background: #f8fafc;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 12px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -165,11 +165,11 @@
             border-color: #cbd5e1;
         }
         .student-card-name {
-            font-weight: 700;
-            font-size: 18px; /* フォントサイズをさらに大きく変更 */
+            font-weight: 800;
+            font-size: 22px; /* さらに大きなフォントサイズに拡大 */
             color: var(--text-main);
             white-space: nowrap;
-            margin-right: 8px;
+            margin-right: 6px;
             /* 長い文字の場合に横幅を縮小してカード内に収める */
             transform-origin: left center;
             display: inline-block;
@@ -467,7 +467,7 @@
                         : '<span class="badge-unsubmitted">未提出</span>';
 
                     html += '<div class="student-card">';
-                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 8px;">';
+                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
                     html += '</div>';
                     html += badge;
