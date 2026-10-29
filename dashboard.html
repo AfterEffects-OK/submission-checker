@@ -151,19 +151,19 @@
         <!-- プルダウンによる絞り込みエリア -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="term-select">講義年度・期</label>
+                <label for="term-select">講義年度・期 (term)</label>
                 <select id="term-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="lecture-select">科目名（講義名）</label>
+                <label for="lecture-select">科目名 / 講義名 (submitDate)</label>
                 <select id="lecture-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="kadai-select">課題タイトル</label>
+                <label for="kadai-select">課題タイトル (kadaiName)</label>
                 <select id="kadai-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
@@ -179,6 +179,7 @@
             <table id="dashboard-table" style="display: none;">
                 <thead>
                     <tr>
+                        <th>講義年度・期</th>
                         <th>科目名</th>
                         <th>課題タイトル</th>
                         <th>提出期限</th>
@@ -219,12 +220,17 @@
 
             const taskMap = {};
             results.forEach(r => {
-                const key = r.submitDate + '_' + r.kadaiName;
+                // キーを「term + lecture + kadaiName」にして一意にグループ化
+                const termVal = r.term || 'その他';
+                const lectureVal = r.submitDate || 'その他';
+                const kadaiVal = r.kadaiName || 'その他';
+                const key = termVal + '_' + lectureVal + '_' + kadaiVal;
+
                 if (!taskMap[key]) {
                     taskMap[key] = {
-                        lecture: r.submitDate,
-                        term: r.term || 'その他',
-                        kadaiName: r.kadaiName,
+                        term: termVal,
+                        lecture: lectureVal,
+                        kadaiName: kadaiVal,
                         deadline: r.deadline,
                         requirement: r.requirement,
                         totalCount: 0,
@@ -242,7 +248,7 @@
 
             allTasksData = Object.values(taskMap);
 
-            // プルダウンの選択肢を自動生成
+            // プルダウンの選択肢を生成
             populateDropdowns(allTasksData);
 
             // 初期表示（全件）
@@ -281,7 +287,7 @@
             });
         }
 
-        // プルダウンが変更されたときの絞り込み処理
+        // プルダウン変更時の絞り込み処理
         function applyFilters() {
             const selectedTerm = document.getElementById('term-select').value;
             const selectedLecture = document.getElementById('lecture-select').value;
@@ -302,7 +308,7 @@
             let html = '';
 
             if (tasks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">該当するデータが見つかりませんでした。</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">該当するデータが見つかりませんでした。</td></tr>';
                 document.getElementById('dashboard-table').style.display = 'table';
                 return;
             }
@@ -312,6 +318,7 @@
                 let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: #64748b;';
 
                 html += '<tr>';
+                html += '<td style="font-weight: 600; color: var(--text-muted);">' + escapeHtml(task.term) + '</td>';
                 html += '<td style="font-weight: 600;">' + escapeHtml(task.lecture) + '</td>';
                 html += '<td style="font-weight: 700;">' + escapeHtml(task.kadaiName) + '</td>';
                 html += '<td style="color: var(--text-muted);">' + escapeHtml(task.deadline) + '</td>';
