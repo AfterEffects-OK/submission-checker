@@ -200,8 +200,9 @@
 
         let allTasksData = [];
 
+        // ページ読み込み時に自動で全データを取得（dashboard専用モードを指定）
         window.addEventListener('DOMContentLoaded', function() {
-            fetch(GAS_URL + '?keyword=')
+            fetch(GAS_URL + '?mode=dashboard') // ★ ?mode=dashboard を送信
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('loading').style.display = 'none';
@@ -211,7 +212,7 @@
                     document.getElementById('loading').innerHTML = 'データ取得エラーが発生しました: ' + error.message;
                 });
         });
-
+        
         function processData(results) {
             if (!results || results.length === 0) {
                 document.getElementById('loading').innerHTML = 'データが見つかりませんでした。';
