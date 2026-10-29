@@ -246,7 +246,7 @@
             border-color: var(--primary);
         }
 
-        /* 学生カードの自動グリッドレイアウト（PC表示の最小幅を190pxに復元） */
+        /* 学生カードの自動グリッドレイアウト */
         .student-cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 190px));
@@ -486,7 +486,6 @@
             to { rotate(360deg); }
         }
 
-        /* スマホ専用のカード型表示コンテナはPCでは非表示 */
         .mobile-cards-view {
             display: none;
         }
@@ -621,12 +620,13 @@
                 display: block;
             }
 
+            /* スマホ表示での学生カードグリッドの行間（gap）を狭く調整 */
             .student-cards-grid {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-                gap: 8px;
+                gap: 6px; /* 行間・列間を狭く設定 */
             }
             .student-card {
-                padding: 10px;
+                padding: 8px 10px; /* カード内部の余白も少しコンパクトに */
             }
             .student-card-name {
                 font-size: 16px;
