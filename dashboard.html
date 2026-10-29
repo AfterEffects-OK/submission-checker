@@ -363,15 +363,16 @@
 
         <!-- プルダウンによる絞り込みエリア（課題タイトルを左側に配置） -->
         <div class="filter-section">
+            
             <div class="filter-group">
-                <label for="kadai-select">課題タイトル</label>
-                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
+                <label for="lecture-select">科目名 / 講義名</label>
+                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="lecture-select">科目名 / 講義名</label>
-                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
+                <label for="kadai-select">課題タイトル</label>
+                <select id="kadai-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
