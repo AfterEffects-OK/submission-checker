@@ -166,7 +166,7 @@
         }
         .student-card-name {
             font-weight: 700;
-            font-size: 15px; /* 文字サイズを拡大 */
+            font-size: 18px; /* フォントサイズをさらに大きく変更 */
             color: var(--text-main);
             white-space: nowrap;
             margin-right: 8px;
@@ -467,7 +467,6 @@
                         : '<span class="badge-unsubmitted">未提出</span>';
 
                     html += '<div class="student-card">';
-                    // 文字数が多い場合は自動で横幅が縮小して収まるようにラッパー要素で制御
                     html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 8px;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
                     html += '</div>';
@@ -489,7 +488,6 @@
         function adjustCardNames() {
             document.querySelectorAll('.student-card-name').forEach(el => {
                 const parent = el.parentElement;
-                // 親要素の幅に対して文字の自然な幅が大きい場合、スケールを縮めて収める
                 if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
                     const scale = parent.clientWidth / el.scrollWidth;
                     el.style.transform = `scaleX(${scale})`;
@@ -509,7 +507,6 @@
             } else {
                 detailRow.classList.add('active');
                 mainRow.classList.add('expanded');
-                // アコーディオンが開いた直後にスケール調整を実行
                 setTimeout(adjustCardNames, 10);
             }
         }
