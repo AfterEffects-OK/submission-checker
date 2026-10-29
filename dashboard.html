@@ -151,19 +151,19 @@
         <!-- プルダウンによる絞り込みエリア -->
         <div class="filter-section">
             <div class="filter-group">
-                <label for="term-select">講義年度・期 (term)</label>
-                <select id="term-select" class="filter-select" onchange="applyFilters()">
+                <label for="term-select">講義年度</label>
+                <select id="term-select" class="filter-select" onchange="onTermChange()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="lecture-select">科目名 / 講義名 (submitDate)</label>
-                <select id="lecture-select" class="filter-select" onchange="applyFilters()">
+                <label for="lecture-select">科目名 / 講義名</label>
+                <select id="lecture-select" class="filter-select" onchange="onLectureChange()">
                     <option value="すべて">すべて</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="kadai-select">課題タイトル (kadaiName)</label>
+                <label for="kadai-select">課題タイトル</label>
                 <select id="kadai-select" class="filter-select" onchange="applyFilters()">
                     <option value="すべて">すべて</option>
                 </select>
@@ -179,7 +179,7 @@
             <table id="dashboard-table" style="display: none;">
                 <thead>
                     <tr>
-                        <th>講義年度・期</th>
+                        <th>講義年度</th>
                         <th>科目名</th>
                         <th>課題タイトル</th>
                         <th>提出期限</th>
@@ -195,14 +195,12 @@
     </div>
 
     <script>
-        // バックエンド（GAS）のWebアプリURL
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
 
-        // ページ読み込み時に自動で全データを取得（dashboard専用モードを指定）
         window.addEventListener('DOMContentLoaded', function() {
-            fetch(GAS_URL + '?mode=dashboard') // ★ ?mode=dashboard を送信
+            fetch(GAS_URL + '?mode=dashboard')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('loading').style.display = 'none';
@@ -212,7 +210,7 @@
                     document.getElementById('loading').innerHTML = 'データ取得エラーが発生しました: ' + error.message;
                 });
         });
-        
+
         function processData(results) {
             if (!results || results.length === 0) {
                 document.getElementById('loading').innerHTML = 'データが見つかりませんでした。';
@@ -221,7 +219,6 @@
 
             const taskMap = {};
             results.forEach(r => {
-                // キーを「term + lecture + kadaiName」にして一意にグループ化
                 const termVal = r.term || 'その他';
                 const lectureVal = r.submitDate || 'その他';
                 const kadaiVal = r.kadaiName || 'その他';
@@ -232,8 +229,8 @@
                         term: termVal,
                         lecture: lectureVal,
                         kadaiName: kadaiVal,
-                        deadline: r.deadline,
-                        requirement: r.requirement,
+                        deadline: r.deadline || '-',
+                        requirement: r.requirement || '-',
                         totalCount: 0,
                         submittedCount: 0
                     };
@@ -249,46 +246,78 @@
 
             allTasksData = Object.values(taskMap);
 
-            // プルダウンの選択肢を生成
-            populateDropdowns(allTasksData);
-
-            // 初期表示（全件）
+            // 初期ロード時はすべての選択肢を設定
+            updateDropdowns(allTasksData);
             renderDashboard(allTasksData);
         }
 
-        // プルダウンに重複のない選択肢をセットする関数
-        function populateDropdowns(tasks) {
+        // プルダウンの選択肢を更新する汎用関数
+        function updateDropdowns(tasks) {
             const termSelect = document.getElementById('term-select');
             const lectureSelect = document.getElementById('lecture-select');
             const kadaiSelect = document.getElementById('kadai-select');
 
-            const terms = [...new Set(tasks.map(t => t.term))].sort();
-            const lectures = [...new Set(tasks.map(t => t.lecture))].sort();
-            const kadais = [...new Set(tasks.map(t => t.kadaiName))].sort();
+            // 現在の選択値を保持
+            const currentTerm = termSelect.value;
+            const currentLecture = lectureSelect.value;
+            const currentKadai = kadaiSelect.value;
 
+            // 1. 講義年度の選択肢（常に全体からユニーク抽出）
+            const terms = [...new Set(allTasksData.map(t => t.term))].sort();
+            termSelect.innerHTML = '<option value="すべて">すべて</option>';
             terms.forEach(term => {
                 const opt = document.createElement('option');
                 opt.value = term;
                 opt.textContent = term;
                 termSelect.appendChild(opt);
             });
+            termSelect.value = terms.includes(currentTerm) ? currentTerm : 'すべて';
 
+            // 2. 科目名の選択肢（講義年度で絞り込む）
+            const filteredByTerm = (termSelect.value === 'すべて') 
+                ? allTasksData 
+                : allTasksData.filter(t => t.term === termSelect.value);
+            
+            const lectures = [...new Set(filteredByTerm.map(t => t.lecture))].sort();
+            lectureSelect.innerHTML = '<option value="すべて">すべて</option>';
             lectures.forEach(lec => {
                 const opt = document.createElement('option');
                 opt.value = lec;
                 opt.textContent = lec;
                 lectureSelect.appendChild(opt);
             });
+            lectureSelect.value = lectures.includes(currentLecture) ? currentLecture : 'すべて';
 
+            // 3. 課題タイトルの選択肢（講義年度 ＆ 科目名で絞り込む）
+            const filteredByLecture = (lectureSelect.value === 'すべて') 
+                ? filteredByTerm 
+                : filteredByTerm.filter(t => t.lecture === lectureSelect.value);
+
+            const kadais = [...new Set(filteredByLecture.map(t => t.kadaiName))].sort();
+            kadaiSelect.innerHTML = '<option value="すべて">すべて</option>';
             kadais.forEach(kadai => {
                 const opt = document.createElement('option');
                 opt.value = kadai;
                 opt.textContent = kadai;
                 kadaiSelect.appendChild(opt);
             });
+            kadaiSelect.value = kadais.includes(currentKadai) ? currentKadai : 'すべて';
         }
 
-        // プルダウン変更時の絞り込み処理
+        // 「講義年度」が変更されたときの処理
+        function onTermChange() {
+            // 科目名と課題タイトルを自動で再計算・連動させる
+            updateDropdowns(allTasksData);
+            applyFilters();
+        }
+
+        // 「科目名」が変更されたときの処理
+        function onLectureChange() {
+            updateDropdowns(allTasksData);
+            applyFilters();
+        }
+
+        // プルダウンの選択条件に基づいてテーブルを絞り込む処理
         function applyFilters() {
             const selectedTerm = document.getElementById('term-select').value;
             const selectedLecture = document.getElementById('lecture-select').value;
