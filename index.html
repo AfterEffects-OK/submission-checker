@@ -229,12 +229,17 @@
 
     /* PC用テーブルコンテナ */
     .table-container {
-      width: 100%;
-      overflow-x: hidden;
-      margin-top: 12px;
-      border: 0px solid var(--border-color);
-      border-radius: 12px;
-      background: #fff;
+        width: 100%; 
+        overflow-x: hidden; 
+        margin-top: 12px; 
+        border: none; /* ← 普段は非表示（ボーダーなし）にする */
+        border-radius: 12px; 
+        background: #fff; 
+    }
+    
+    /* 表が表示されているときに適用する枠線のスタイル */
+    .table-container.has-table {
+        border: 1px solid var(--border-color); /* 表があるときだけ枠線を表示 */
     }
 
     table {
@@ -733,6 +738,7 @@
       const table = document.getElementById('result-table');
       const tbody = document.getElementById('result-body');
       const cardContainer = document.getElementById('mobile-card-container');
+      const tableContainer = document.getElementById('result-container'); // ★ここを追加
 
       const filtered = allResults.filter(r => {
         if (currentFilter === 'すべて') {
@@ -745,6 +751,9 @@
         tbody.innerHTML = '<tr><td colspan="7" class="empty-message">該当するデータが見つかりませんでした。</td></tr>';
         table.style.display = 'table';
         cardContainer.innerHTML = '<div class="empty-message">該当するデータが見つかりませんでした。</div>';
+        
+        // ★ 0件のときは枠線を非表示にするクラスを外す
+        if (tableContainer) tableContainer.classList.remove('has-table');
         return;
       }
 
@@ -801,7 +810,10 @@
       }
       tbody.innerHTML = tableHtml;
       table.style.display = 'table';
-
+      
+      // ★ データがある（表が出る）ときは枠線を表示するクラスを追加する
+      if (tableContainer) tableContainer.classList.add('has-table');
+      
       // 2. スマホ用 2段カードリストのHTML生成
       let cardHtml = '';
       for (let i = 0; i < filtered.length; i++) {
