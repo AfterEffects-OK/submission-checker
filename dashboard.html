@@ -264,7 +264,7 @@
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
         
-        /* ホバー時の詳細ツールチップ（ポップアップ：はみ出し防止＆下部表示対応） */
+        /* ホバー時の詳細ツールチップ（ポップアップ：2行表示対応） */
         .student-card .card-tooltip {
             visibility: hidden;
             opacity: 0;
@@ -275,18 +275,16 @@
             background-color: #0f172a;
             color: #f8fafc;
             text-align: left;
-            padding: 6px 10px;
+            padding: 8px 12px;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 500;
             white-space: nowrap;
+            line-height: 1.5;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
             pointer-events: none;
-            max-width: 260px;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         /* 一番上の行など、上方向にはみ出る場合は下に表示するクラス */
         .student-card.tooltip-down .card-tooltip {
@@ -763,11 +761,12 @@
                         cardClass += ' tooltip-down';
                     }
 
-                    // ツールチップに表示する詳細データ（ファイル名など）
-                    let tooltipText = '学生名: ' + st.name + ' / 提出ファイル: ' + (st.fileName && st.fileName !== '-' ? st.fileName : 'なし');
+                    // ツールチップに表示する内容（改行を挟んで2行に分割）
+                    let fileDisplay = (st.fileName && st.fileName !== '-' ? st.fileName : 'なし');
+                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '<br>提出ファイル: ' + escapeHtml(fileDisplay);
 
                     html += '<div class="' + cardClass + '">';
-                    html += '<div class="card-tooltip">' + escapeHtml(tooltipText) + '</div>';
+                    html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
                     html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
                     html += '</div>';
