@@ -288,7 +288,7 @@
         /* 学生カードの自動グリッドレイアウト */
         .student-cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 190px));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 200px));
             gap: 12px;
             position: relative;
         }
@@ -297,8 +297,8 @@
             border-radius: 8px;
             padding: 12px 14px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            justify-content: center;
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
 
@@ -423,43 +423,20 @@
 
         .student-card-name {
             font-weight: 800;
-            font-size: 22px;
+            font-size: 18px;
             color: var(--text-main);
             white-space: nowrap;
-            margin-right: 6px;
             transform-origin: left center;
             display: inline-block;
         }
 
-        .badge-submitted {
-            background: #047857;
-            color: #ecfdf5;
-            padding: 3px 8px;
-            border-radius: 6px;
+        /* 提出確認日のスタイル（小さめの文字で名前の下に配置） */
+        .student-card-date {
             font-size: 11px;
-            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-weight: 500;
             white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .badge-unsubmitted {
-            background: #b91c1c;
-            color: #fef2f2;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .badge-unknown {
-            background: #ca8a04;
-            color: #fefce8;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-            flex-shrink: 0;
         }
 
         .td-lecture {
@@ -522,7 +499,7 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin {
-            to { rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
         .mobile-cards-view {
@@ -667,7 +644,10 @@
                 padding: 8px 10px;
             }
             .student-card-name {
-                font-size: 16px;
+                font-size: 15px;
+            }
+            .student-card-date {
+                font-size: 10px;
             }
         }
     </style>
@@ -802,7 +782,6 @@
                     btnElement.classList.remove('loading');
                     if (!data || data.length === 0) return;
 
-                    // 再構築
                     const taskMap = {};
                     data.forEach(r => {
                         const lectureVal = r.submitDate || 'その他';
@@ -828,6 +807,7 @@
                                 name: studentName,
                                 status: r.isSubmitted,
                                 isSubmitted: false,
+                                submitDateStr: r.submitDateStr || '-',
                                 fileNames: []
                             };
                         }
@@ -839,6 +819,9 @@
                         }
                         if (r.status === '評価不能' || r.status === '判定不能') {
                             stObj.status = r.status;
+                        }
+                        if (r.submitDateStr && r.submitDateStr !== '-') {
+                            stObj.submitDateStr = r.submitDateStr;
                         }
 
                         if (r.fileName && r.fileName !== '-') {
@@ -855,7 +838,7 @@
                     });
 
                     allTasksData = Object.values(taskMap);
-                    applyFilters(); // 画面を再描画（アコーディオンの開閉状態やスクロール位置を保持）
+                    applyFilters();
                 })
                 .catch(error => {
                     btnElement.classList.remove('loading');
@@ -894,6 +877,7 @@
                         name: studentName,
                         status: r.isSubmitted,
                         isSubmitted: false,
+                        submitDateStr: r.submitDateStr || '-',
                         fileNames: []
                     };
                 }
@@ -905,6 +889,9 @@
                 }
                 if (r.status === '評価不能' || r.status === '判定不能') {
                     stObj.status = r.status;
+                }
+                if (r.submitDateStr && r.submitDateStr !== '-') {
+                    stObj.submitDateStr = r.submitDateStr;
                 }
 
                 if (r.fileName && r.fileName !== '-') {
@@ -1052,7 +1039,7 @@
                 html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
                 html += '再取得';
                 html += '</button>';
-                html += '</div>'; // detail-title-group
+                html += '</div>';
 
                 const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
                 if (trimmedFolderId !== '' && trimmedFolderId !== '-') {
@@ -1069,19 +1056,14 @@
 
                 task.students.forEach((st, stIdx) => {
                     let cardClass = 'student-card unsubmitted';
-                    let badge = '<span class="badge-unsubmitted">未提出</span>';
-
                     if (st.status === '評価不能' || st.status === '判定不能') {
                         cardClass = 'student-card unknown';
-                        badge = '<span class="badge-unknown">評価不能</span>';
                     } else if (st.isSubmitted) {
                         cardClass = 'student-card submitted';
-                        badge = '<span class="badge-submitted">提出済み</span>';
                     }
 
                     if (st.fileNames && st.fileNames.length > 1) {
                         cardClass += ' has-multiple';
-                        badge += '<div class="file-count-badge">' + st.fileNames.length + '</div>';
                     }
 
                     if (stIdx < 6) {
@@ -1093,14 +1075,19 @@
                         fileDisplay = st.fileNames.join('\n・');
                         fileDisplay = '\n・' + fileDisplay;
                     }
-                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出ファイル: ' + escapeHtml(fileDisplay);
+                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                     html += '<div class="' + cardClass + '">';
                     html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
-                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
+                    
+                    if (st.fileNames && st.fileNames.length > 1) {
+                        html += '<div class="file-count-badge">' + st.fileNames.length + '</div>';
+                    }
+
+                    html += '<div style="overflow: hidden; width: 100%;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
                     html += '</div>';
-                    html += badge;
+                    html += '<div class="student-card-date">' + escapeHtml(st.submitDateStr || '-') + '</div>';
                     html += '</div>';
                 });
 
@@ -1171,19 +1158,14 @@
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
                 task.students.forEach(st => {
                     let cardClass = 'student-card unsubmitted';
-                    let badge = '<span class="badge-unsubmitted">未提出</span>';
-
                     if (st.status === '評価不能' || st.status === '判定不能') {
                         cardClass = 'student-card unknown';
-                        badge = '<span class="badge-unknown">評価不能</span>';
                     } else if (st.isSubmitted) {
                         cardClass = 'student-card submitted';
-                        badge = '<span class="badge-submitted">提出済み</span>';
                     }
 
                     if (st.fileNames && st.fileNames.length > 1) {
                         cardClass += ' has-multiple';
-                        badge += '<div class="file-count-badge">' + st.fileNames.length + '</div>';
                     }
 
                     let fileDisplay = 'なし';
@@ -1191,14 +1173,19 @@
                         fileDisplay = st.fileNames.join('\n・');
                         fileDisplay = '\n・' + fileDisplay;
                     }
-                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出ファイル: ' + escapeHtml(fileDisplay);
+                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                     html += '<div class="' + cardClass + '">';
                     html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
-                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
+
+                    if (st.fileNames && st.fileNames.length > 1) {
+                        html += '<div class="file-count-badge">' + st.fileNames.length + '</div>';
+                    }
+
+                    html += '<div style="overflow: hidden; width: 100%;">';
                     html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
                     html += '</div>';
-                    html += badge;
+                    html += '<div class="student-card-date">' + escapeHtml(st.submitDateStr || '-') + '</div>';
                     html += '</div>';
                 });
 
