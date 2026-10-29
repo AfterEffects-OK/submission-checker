@@ -20,8 +20,8 @@
             --sub-bg: #ffffff;
         }
 
-        /* ダークモード時のカラー定義 */
-        [data-theme="dark"] {
+        /* ダークモード時のカラー定義 (body.dark-mode クラスに連動) */
+        body.dark-mode {
             --primary: #10b981;
             --primary-hover: #059669;
             --bg-color: #0f172a;
@@ -43,7 +43,7 @@
             transition: background-color 0.2s ease, color 0.2s ease;
         }
         .container {
-            max-width: 1400px; /* コンテナの最大幅を少し拡大 */
+            max-width: 1400px;
             margin: 0 auto;
             background: var(--card-bg);
             padding: 40px;
@@ -65,7 +65,7 @@
         h2 { margin: 0 0 8px 0; font-size: 26px; font-weight: 800; }
         p.subtitle { margin: 0; color: var(--text-muted); font-size: 15px; }
 
-        /* モード切り替えボタン */
+        /* モード切り替えボタン (index.html 準拠) */
         .theme-toggle-btn {
             background: var(--filter-bg);
             border: 1px solid var(--border-color);
@@ -77,14 +77,23 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             transition: background 0.2s ease, border-color 0.2s ease;
         }
         .theme-toggle-btn:hover {
             border-color: var(--primary);
         }
+        .theme-toggle-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
 
-        /* プルダウンフィルターエリア（ラベルを左側の横並び） */
+        /* プルダウンフィルターエリア（ラベルが左側の横並び） */
         .filter-section {
             display: flex;
             gap: 24px;
@@ -367,9 +376,10 @@
                 <h2>課題別 提出状況ダッシュボード</h2>
                 <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出カードが展開されます。</p>
             </div>
-            <!-- モード切り替えボタン（太陽・月のアイコン対応） -->
-            <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="表示モード切替">
-                <span id="theme-text">ライトモード</span>
+            <!-- モード切り替えボタン（index.html 準拠のSVGアイコン） -->
+            <button id="theme-toggle" class="theme-toggle-btn" title="表示モード切替">
+                <svg id="theme-icon" viewBox="0 0 24 24"></svg>
+                <span id="theme-text">ダークモード</span>
             </button>
         </div>
 
@@ -413,49 +423,42 @@
     </div>
 
     <script>
-        // --- テーマ（ライト/ダークモード）初期化と切り替え処理 ---
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        })();
+        // --- テーマ（ライト/ダークモード）初期化と切り替え処理 (index.html 準拠) ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
 
-        window.addEventListener('DOMContentLoaded', () => {
-            updateThemeButtonUI();
+        const moonPath = "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z";
+        const sunPath = "M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z";
 
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                if (!localStorage.getItem('theme')) {
-                    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-                    updateThemeButtonUI();
-                }
-            });
-        });
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isInitialDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
 
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        if (isInitialDark) {
+            document.body.classList.add('dark-mode');
+            themeIcon.innerHTML = `<path d="${sunPath}"/>`;
+            themeText.textContent = 'ライトモード';
+        } else {
+            document.body.classList.remove('dark-mode');
+            themeIcon.innerHTML = `<path d="${moonPath}"/>`;
+            themeText.textContent = 'ダークモード';
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
             
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeButtonUI();
-        }
-
-        function updateThemeButtonUI() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const text = document.getElementById('theme-text');
-            if (!text) return;
-
-            if (currentTheme === 'dark') {
-                text.textContent = '☀️ ライトモード';
+            if (isDarkMode) {
+                themeIcon.innerHTML = `<path d="${sunPath}"/>`;
+                themeText.textContent = 'ライトモード';
+                localStorage.setItem('theme', 'dark');
             } else {
-                text.textContent = '🌙 ダークモード';
+                themeIcon.innerHTML = `<path d="${moonPath}"/>`;
+                themeText.textContent = 'ダークモード';
+                localStorage.setItem('theme', 'light');
             }
-        }
+        });
         // --------------------------------------------------------
 
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
