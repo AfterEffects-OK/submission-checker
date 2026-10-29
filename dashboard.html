@@ -439,27 +439,43 @@
                 html += '</td>';
                 html += '</tr>';
 
+                // 学生氏名・提出状態のペアを2人分（4列分：氏名、状態、氏名、状態）横に並べて表示するサブテーブル
                 html += '<tr class="detail-row" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
                 html += '<div class="detail-title"><span>📋 「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
                 html += '<table class="student-sub-table">';
-                html += '<thead><tr><th>学生氏名</th><th style="text-align: center; width: 120px;">提出状態</th><th>提出ファイル名</th></tr></thead>';
+                html += '<thead><tr>';
+                html += '<th>学生氏名</th><th style="text-align: center; width: 130px;">提出状態</th>';
+                html += '<th style="border-left: 2px solid var(--border-color); padding-left: 20px;">学生氏名</th><th style="text-align: center; width: 130px;">提出状態</th>';
+                html += '</tr></thead>';
                 html += '<tbody>';
 
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
-                task.students.forEach(st => {
-                    let badge = st.isSubmitted 
-                        ? '<span class="badge-submitted">提出済み</span>' 
-                        : '<span class="badge-unsubmitted">未提出</span>';
+                // 2人ずつペアにして横に並べるループ処理
+                for (let i = 0; i < task.students.length; i += 2) {
+                    const st1 = task.students[i];
+                    const st2 = task.students[i + 1]; // 奇数人の場合はundefinedになる可能性あり
 
+                    let badge1 = st1.isSubmitted ? '<span class="badge-submitted">提出済み</span>' : '<span class="badge-unsubmitted">未提出</span>';
+                    
                     html += '<tr>';
-                    html += '<td style="font-weight: 600;">' + escapeHtml(st.name) + '</td>';
-                    html += '<td style="text-align: center;">' + badge + '</td>';
-                    html += '<td style="color: var(--text-muted);">' + escapeHtml(st.fileName) + '</td>';
+                    // 1人目
+                    html += '<td style="font-weight: 600;">' + escapeHtml(st1.name) + '</td>';
+                    html += '<td style="text-align: center;">' + badge1 + '</td>';
+
+                    // 2人目（存在する場合）
+                    if (st2) {
+                        let badge2 = st2.isSubmitted ? '<span class="badge-submitted">提出済み</span>' : '<span class="badge-unsubmitted">未提出</span>';
+                        html += '<td style="font-weight: 600; border-left: 2px solid var(--border-color); padding-left: 20px;">' + escapeHtml(st2.name) + '</td>';
+                        html += '<td style="text-align: center;">' + badge2 + '</td>';
+                    } else {
+                        // 最後の人数が奇数で2人目がいない場合の空セル
+                        html += '<td style="border-left: 2px solid var(--border-color);"></td><td></td>';
+                    }
                     html += '</tr>';
-                });
+                }
 
                 html += '</tbody></table>';
                 html += '</div>';
