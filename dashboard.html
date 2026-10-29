@@ -149,7 +149,6 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            min-width: 750px; /* スマホで縮みすぎないように最小幅を確保して横スクロールさせる */
         }
         th, td {
             padding: 16px 20px;
@@ -164,7 +163,6 @@
             font-size: 13px;
             white-space: nowrap;
         }
-        /* ソート可能なヘッダーのスタイル */
         th.sortable {
             cursor: pointer;
             user-select: none;
@@ -265,7 +263,6 @@
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
 
-        /* 複数ファイルがある場合のスタック（重なり）視覚効果 */
         .student-card.has-multiple::before,
         .student-card.has-multiple::after {
             content: '';
@@ -361,7 +358,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* 提出済みカード（非常に薄い緑） */
         .student-card.submitted {
             background: rgba(16, 185, 129, 0.08);
             border: 1px solid rgba(16, 185, 129, 0.25);
@@ -370,7 +366,6 @@
             border-color: rgba(16, 185, 129, 0.5);
         }
 
-        /* 未提出カード（非常に薄い赤） */
         .student-card.unsubmitted {
             background: rgba(239, 68, 68, 0.08);
             border: 1px solid rgba(239, 68, 68, 0.25);
@@ -379,7 +374,6 @@
             border-color: rgba(239, 68, 68, 0.5);
         }
 
-        /* 評価不能カード（非常に薄い黄色） */
         .student-card.unknown {
             background: rgba(234, 179, 8, 0.08);
             border: 1px solid rgba(234, 179, 8, 0.25);
@@ -398,7 +392,6 @@
             display: inline-block;
         }
 
-        /* 提出済み・未提出・評価不能のバッジ */
         .badge-submitted {
             background: #047857;
             color: #ecfdf5;
@@ -455,7 +448,6 @@
             font-size: 14px;
         }
 
-        /* 進捗バーのスタイル */
         .progress-bar-container {
             background: var(--border-color);
             border-radius: 8px;
@@ -494,35 +486,124 @@
             to { rotate(360deg); }
         }
 
+        /* スマホ専用のカード型表示コンテナはPCでは非表示 */
+        .mobile-cards-view {
+            display: none;
+        }
+
         /* --- スマホ・タブレット向けのレスポンシブ対応 (メディアクエリ) --- */
         @media screen and (max-width: 768px) {
             body {
-                padding: 16px 12px;
+                padding: 12px 8px;
             }
             .container {
-                padding: 20px 16px;
-                border-radius: 12px;
+                padding: 16px 12px;
+                border-radius: 10px;
             }
             h2 {
-                font-size: 20px;
+                font-size: 18px;
             }
             p.subtitle {
-                font-size: 13px;
+                font-size: 12px;
             }
             .filter-section {
                 flex-direction: column;
-                gap: 14px;
-                padding: 14px;
+                gap: 12px;
+                padding: 12px;
             }
             .filter-group {
                 min-width: 100%;
                 flex-direction: column;
                 align-items: stretch;
-                gap: 6px;
+                gap: 4px;
             }
             .filter-select {
                 width: 100%;
             }
+
+            /* スマホでは通常の横スクロールテーブルを非表示にし、縦積みカードレイアウトを表示 */
+            .table-container {
+                display: none;
+            }
+            .mobile-cards-view {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                margin-top: 16px;
+            }
+
+            /* スマホ用課題カード */
+            .mobile-task-card {
+                background: var(--card-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 16px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            }
+            .mobile-task-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 10px;
+                gap: 8px;
+            }
+            .mobile-task-title {
+                font-size: 16px;
+                font-weight: 800;
+                color: var(--text-main);
+                margin: 0;
+            }
+            .mobile-task-lecture {
+                font-size: 12px;
+                color: var(--text-muted);
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+            .mobile-task-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 13px;
+                color: var(--text-muted);
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .mobile-progress-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 14px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            /* スマホ用アコーディオン展開ボタン */
+            .mobile-toggle-btn {
+                width: 100%;
+                background: var(--filter-bg);
+                border: 1px solid var(--border-color);
+                color: var(--text-main);
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 6px;
+            }
+            .mobile-students-container {
+                display: none;
+                margin-top: 14px;
+                padding-top: 12px;
+                border-top: 1px dashed var(--border-color);
+            }
+            .mobile-students-container.active {
+                display: block;
+            }
+
             .student-cards-grid {
                 grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
                 gap: 8px;
@@ -531,15 +612,7 @@
                 padding: 10px;
             }
             .student-card-name {
-                font-size: 18px;
-            }
-            .badge-submitted, .badge-unsubmitted, .badge-unknown {
-                font-size: 10px;
-                padding: 2px 6px;
-            }
-            th, td {
-                padding: 12px 14px;
-                font-size: 14px;
+                font-size: 16px;
             }
         }
     </style>
@@ -550,7 +623,7 @@
         <div class="header-flex">
             <div>
                 <h2>課題別 提出状況ダッシュボード</h2>
-                <p class="subtitle">リストの行をクリックすると、その下に学生ごとの提出カードが展開されます。</p>
+                <p class="subtitle">各課題のカードをタップすると、学生ごとの提出状況が展開されます。</p>
             </div>
             <!-- モード切り替えボタン -->
             <button id="theme-toggle" class="theme-toggle-btn" title="表示モード切替">
@@ -580,6 +653,7 @@
             <span>全データを読み込み中...</span>
         </div>
 
+        <!-- PC用テーブルビュー -->
         <div class="table-container">
             <table id="dashboard-table" style="display: none;">
                 <thead>
@@ -596,6 +670,9 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- スマホ用カードビュー（横スクロールを完全に防ぎます） -->
+        <div id="mobile-cards-container" class="mobile-cards-view"></div>
     </div>
 
     <script>
@@ -699,7 +776,6 @@
                     stObj.status = r.status;
                 }
 
-                // 提出ファイル名がある場合は追加（重複チェック）
                 if (r.fileName && r.fileName !== '-') {
                     if (!stObj.fileNames.includes(r.fileName)) {
                         stObj.fileNames.push(r.fileName);
@@ -726,7 +802,6 @@
             const currentLecture = lectureSelect.value;
             const currentKadai = kadaiSelect.value;
 
-            // 講義名セレクトの更新
             const lectures = [...new Set(allTasksData.map(t => t.lecture))].sort();
             lectureSelect.innerHTML = '<option value="すべて">すべて</option>';
             lectures.forEach(lec => {
@@ -737,7 +812,6 @@
             });
             lectureSelect.value = lectures.includes(currentLecture) ? currentLecture : 'すべて';
 
-            // 課題セレクトの更新（講義名で絞り込み可能）
             const filteredByLecture = (lectureSelect.value === 'すべて') 
                 ? allTasksData 
                 : allTasksData.filter(t => t.lecture === lectureSelect.value);
@@ -768,7 +842,6 @@
                 return matchLecture && matchKadai;
             });
 
-            // 区分（requirement）によるソートを実行
             filtered.sort((a, b) => {
                 let valA = a.requirement || '';
                 let valB = b.requirement || '';
@@ -779,19 +852,22 @@
             renderDashboard(filtered);
         }
 
-        // 区分列でのソート処理
         function sortTable(column) {
             currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-            
             const icon = document.getElementById('sort-icon-' + column);
             if (icon) {
                 icon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
             }
-
             applyFilters();
         }
 
         function renderDashboard(tasks) {
+            renderDesktopTable(tasks);
+            renderMobileCards(tasks);
+        }
+
+        // --- PC用テーブルビューのレンダリング ---
+        function renderDesktopTable(tasks) {
             const tbody = document.getElementById('dashboard-body');
             let html = '';
 
@@ -832,12 +908,10 @@
                 html += '</td>';
                 html += '</tr>';
 
-                // 学生カード展開行
                 html += '<tr class="' + detailRowClass + '" id="' + rowId + '">';
                 html += '<td colspan="6" class="detail-cell">';
                 html += '<div class="detail-box">';
                 
-                // ヘッダー部分（タイトルとGoogleドライブフォルダへのリンクボタン）
                 html += '<div class="detail-header-flex">';
                 html += '<div class="detail-title"><span>「' + escapeHtml(task.kadaiName) + '」の学生別提出状況</span></div>';
                 
@@ -849,11 +923,9 @@
                     html += 'Googleドライブのフォルダを開く';
                     html += '</a>';
                 }
-                
-                html += '</div>'; // detail-header-flex
+                html += '</div>';
 
                 html += '<div class="student-cards-grid">';
-
                 task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
                 task.students.forEach((st, stIdx) => {
@@ -880,9 +952,102 @@
                     let fileDisplay = 'なし';
                     if (st.fileNames && st.fileNames.length > 0) {
                         fileDisplay = st.fileNames.join('\n・');
-                        if (st.fileNames.length > 0) {
-                            fileDisplay = '\n・' + fileDisplay;
-                        }
+                        fileDisplay = '\n・' + fileDisplay;
+                    }
+                    let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出ファイル: ' + escapeHtml(fileDisplay);
+
+                    html += '<div class="' + cardClass + '">';
+                    html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
+                    html += '<div style="overflow: hidden; flex-grow: 1; margin-right: 6px;">';
+                    html += '<span class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</span>';
+                    html += '</div>';
+                    html += badge;
+                    html += '</div>';
+                });
+
+                html += '</div>';
+                html += '</div>';
+                html += '</td>';
+                html += '</tr>';
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('dashboard-table').style.display = 'table';
+            setTimeout(adjustCardNames, 10);
+        }
+
+        // --- スマホ用カードビューのレンダリング（横スクロールなし） ---
+        function renderMobileCards(tasks) {
+            const container = document.getElementById('mobile-cards-container');
+            let html = '';
+
+            if (tasks.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px;">該当するデータが見つかりませんでした。</div>';
+                return;
+            }
+
+            tasks.forEach((task, index) => {
+                const percentage = task.totalCount > 0 ? Math.round((task.submittedCount / task.totalCount) * 100) : 0;
+                let reqClass = (task.requirement && (task.requirement.includes('必') || task.requirement.includes('必須'))) ? 'color: #0369a1; font-weight: 700;' : 'color: var(--text-muted);';
+                
+                const taskKey = task.lecture + '_' + task.kadaiName;
+                const isExpanded = expandedRowKeys.has(taskKey);
+                const containerClass = isExpanded ? 'mobile-students-container active' : 'mobile-students-container';
+                const btnText = isExpanded ? '学生別状況を閉じる ▲' : '学生別状況を開く ▼';
+
+                html += '<div class="mobile-task-card">';
+                html += '<div class="mobile-task-lecture">' + escapeHtml(task.lecture) + '</div>';
+                html += '<div class="mobile-task-header"><h3 class="mobile-task-title">' + escapeHtml(task.kadaiName) + '</h3>';
+                html += '<span style="' + reqClass + ' font-size: 12px; white-space: nowrap;">' + escapeHtml(task.requirement) + '</span></div>';
+                
+                html += '<div class="mobile-task-info">';
+                html += '<span>期限: ' + escapeHtml(task.deadline) + '</span>';
+                
+                const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
+                if (trimmedFolderId !== '' && trimmedFolderId !== '-') {
+                    const folderUrl = 'https://drive.google.com/drive/folders/' + encodeURIComponent(trimmedFolderId);
+                    html += '<a href="' + folderUrl + '" target="_blank" class="folder-link-btn" style="padding: 4px 8px; font-size: 11px;">ドライブを開く</a>';
+                }
+                html += '</div>';
+
+                html += '<div class="mobile-progress-row">';
+                html += '<span>提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</span>';
+                html += '</div>';
+
+                // 進捗バー
+                html += '<div style="background: var(--border-color); border-radius: 6px; height: 8px; width: 100%; overflow: hidden; margin-bottom: 12px;">';
+                html += '<div style="background: var(--primary); height: 100%; width: ' + percentage + '%;"></div>';
+                html += '</div>';
+
+                // 展開ボタン
+                html += '<button class="mobile-toggle-btn" onclick="toggleMobileDetail(\'' + escapeHtml(taskKey) + '\')">' + btnText + '</button>';
+
+                // 展開される学生カード一覧
+                html += '<div class="' + containerClass + '" id="mobile-detail-' + index + '">';
+                html += '<div class="student-cards-grid">';
+
+                task.students.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+                task.students.forEach(st => {
+                    let cardClass = 'student-card unsubmitted';
+                    let badge = '<span class="badge-unsubmitted">未提出</span>';
+
+                    if (st.status === '評価不能' || st.status === '判定不能') {
+                        cardClass = 'student-card unknown';
+                        badge = '<span class="badge-unknown">評価不能</span>';
+                    } else if (st.isSubmitted) {
+                        cardClass = 'student-card submitted';
+                        badge = '<span class="badge-submitted">提出済み</span>';
+                    }
+
+                    if (st.fileNames && st.fileNames.length > 1) {
+                        cardClass += ' has-multiple';
+                        badge += '<div class="file-count-badge">' + st.fileNames.length + '</div>';
+                    }
+
+                    let fileDisplay = 'なし';
+                    if (st.fileNames && st.fileNames.length > 0) {
+                        fileDisplay = st.fileNames.join('\n・');
+                        fileDisplay = '\n・' + fileDisplay;
                     }
                     let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
@@ -896,14 +1061,11 @@
                 });
 
                 html += '</div>'; // student-cards-grid
-                html += '</div>'; // detail-box
-                html += '</td>';
-                html += '</tr>';
+                html += '</div>'; // mobile-students-container
+                html += '</div>'; // mobile-task-card
             });
 
-            tbody.innerHTML = html;
-            document.getElementById('dashboard-table').style.display = 'table';
-
+            container.innerHTML = html;
             setTimeout(adjustCardNames, 10);
         }
 
@@ -933,6 +1095,15 @@
                 expandedRowKeys.add(taskKey);
                 setTimeout(adjustCardNames, 10);
             }
+        }
+
+        function toggleMobileDetail(taskKey) {
+            if (expandedRowKeys.has(taskKey)) {
+                expandedRowKeys.delete(taskKey);
+            } else {
+                expandedRowKeys.add(taskKey);
+            }
+            applyFilters(); // 再描画して状態を反映
         }
 
         function escapeHtml(str) {
