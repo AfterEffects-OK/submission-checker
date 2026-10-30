@@ -630,7 +630,6 @@
       const lower = String(filename).trim().toLowerCase();
       if (lower.length < 4) return false;
       
-      // 最後の4文字を取得（例: ".mp4", ".mov" など）
       const last4 = lower.slice(-4);
       const validExtensions = ['.mp4', '.mov', '.avi', '.m4v', '.wmv', '.mkv', '.webm', '.flv'];
       
@@ -699,11 +698,17 @@
     });
 
     function performSearch() {
-      const keyword = document.getElementById('keyword').value.trim();
-      if (!keyword) {
+      const rawKeyword = document.getElementById('keyword').value.trim();
+      if (!rawKeyword) {
         alert('検索キーワードを入力してください。');
         return;
       }
+
+      // 💡【修正点】入力されたキーワードからスペースや異体字（異体字セレクタ等）をすべて正規化して除外する
+      const keyword = rawKeyword
+        .replace(/[\s ]+/g, '')
+        .replace(/[\uE000-\F8FF]/g, '')
+        .replace(/[\uFE00-\uFE0F]/g, '');
 
       document.getElementById('loading').style.display = 'flex';
       document.getElementById('result-table').style.display = 'none';
@@ -738,7 +743,7 @@
       const table = document.getElementById('result-table');
       const tbody = document.getElementById('result-body');
       const cardContainer = document.getElementById('mobile-card-container');
-      const tableContainer = document.getElementById('result-container'); // ★ここを追加
+      const tableContainer = document.getElementById('result-container');
 
       const filtered = allResults.filter(r => {
         if (currentFilter === 'すべて') {
@@ -752,7 +757,6 @@
         table.style.display = 'table';
         cardContainer.innerHTML = '<div class="empty-message">該当するデータが見つかりませんでした。</div>';
         
-        // ★ 0件のときは枠線を非表示にするクラスを外す
         if (tableContainer) tableContainer.classList.remove('has-table');
         return;
       }
@@ -762,19 +766,14 @@
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
         
-        // 元の「課題提出」シートのフラグがTRUEかどうか
         let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
-        
-        // 提出済み判定の全体
-        let isSub = isOriginalSubmitted; // ※バックエンドでサブフォルダ自動照合も含んだ判定結果になっている前提
+        let isSub = isOriginalSubmitted;
 
         let statusHtml = '';
         if (isSub) {
-          // 課題提出シートのフラグが TRUE（手動確認済み）のときは無条件で「提出済み」
           if (r.isManualVerified === true) {
             statusHtml = '<span class="badge status-submitted">提出済み</span>';
           } else {
-            // FALSEのときはファイル名の末尾4文字が動画拡張子かどうかをチェック
             if (!hasValidVideoExtension(r.fileName)) {
               statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
             } else {
@@ -811,7 +810,6 @@
       tbody.innerHTML = tableHtml;
       table.style.display = 'table';
       
-      // ★ データがある（表が出る）ときは枠線を表示するクラスを追加する
       if (tableContainer) tableContainer.classList.add('has-table');
       
       // 2. スマホ用 2段カードリストのHTML生成
