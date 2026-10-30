@@ -866,12 +866,12 @@
             <table id="dashboard-table" style="display: none;">
                 <thead>
                     <tr>
-                        <th>科目名</th>
+                        <th class="sortable" onclick="sortTable('lecture')">科目名 <span id="sort-icon-lecture"></span></th>
                         <th>課題タイトル</th>
-                        <th>提出期限</th>
+                        <th class="sortable" onclick="sortTable('deadline')">提出期限 <span id="sort-icon-deadline"></span></th>
                         <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement">▲</span></th>
                         <th class="sortable" style="text-align: center;" onclick="sortTable('status')">提出状況 (提出数 / 対象者数) <span id="sort-icon-status"></span></th>
-                        <th style="text-align: center;">提出率</th>
+                        <th class="sortable" style="text-align: center;" onclick="sortTable('rate')">提出率 <span id="sort-icon-rate"></span></th>
                     </tr>
                 </thead>
                 <tbody id="dashboard-body">
@@ -1212,18 +1212,19 @@
                 currentSortColumn = column;
                 currentSortDirection = 'asc';
             }
-
-            const iconReq = document.getElementById('sort-icon-requirement');
-            const iconStatus = document.getElementById('sort-icon-status');
-            
-            if (iconReq) iconReq.textContent = '';
-            if (iconStatus) iconStatus.textContent = '';
-
+        
+            // すべてのソートアイコンをクリア
+            ['requirement', 'status', 'lecture', 'deadline', 'rate'].forEach(col => {
+                const icon = document.getElementById('sort-icon-' + col);
+                if (icon) icon.textContent = '';
+            });
+        
+            // アクティブな列にアイコンを表示
             const activeIcon = document.getElementById('sort-icon-' + column);
             if (activeIcon) {
                 activeIcon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
             }
-
+        
             applyFilters();
         }
 
@@ -1240,22 +1241,33 @@
             });
 
             filtered.sort((a, b) => {
-                let comparison = 0;
-                if (currentSortColumn === 'requirement') {
-                    let valA = a.requirement || '';
-                    let valB = b.requirement || '';
-                    comparison = valA.localeCompare(valB, 'ja');
-                } else if (currentSortColumn === 'status') {
-                    comparison = a.submittedCount - b.submittedCount;
-                    if (comparison === 0) {
-                        let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
-                        let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
-                        comparison = rateA - rateB;
-                    }
+            let comparison = 0;
+            if (currentSortColumn === 'requirement') {
+                let valA = a.requirement || '';
+                let valB = b.requirement || '';
+                comparison = valA.localeCompare(valB, 'ja');
+            } else if (currentSortColumn === 'status') {
+                comparison = a.submittedCount - b.submittedCount;
+                if (comparison === 0) {
+                    let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
+                    let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
+                    comparison = rateA - rateB;
                 }
-                return currentSortDirection === 'asc' ? comparison : -comparison;
-            });
-
+            } else if (currentSortColumn === 'lecture') {
+                let valA = a.lecture || '';
+                let valB = b.lecture || '';
+                comparison = valA.localeCompare(valB, 'ja');
+            } else if (currentSortColumn === 'deadline') {
+                let valA = a.deadline || '';
+                let valB = b.deadline || '';
+                comparison = valA.localeCompare(valB);
+            } else if (currentSortColumn === 'rate') {
+                let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
+                let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
+                comparison = rateA - rateB;
+            }
+            return currentSortDirection === 'asc' ? comparison : -comparison;
+        });
             renderDashboard(filtered);
         }
 
