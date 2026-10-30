@@ -20,7 +20,6 @@
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     }
 
-    /* ▼ 追加：ダークモード時の配色設定 */
     body.dark-mode {
       --bg-color: #0f172a;
       --card-bg: #1e293b;
@@ -30,7 +29,6 @@
       --primary-light: #064e3b;
     }
 
-    /* ▼ 追加：ダークモード時のテーブル・入力欄の背景色の補正 */
     body.dark-mode .table-container {
       background: var(--card-bg);
       border-color: var(--border-color);
@@ -167,30 +165,6 @@
 
     .filter-tabs {
       display: none !important;
-    }
-
-    .filter-btn {
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 700;
-      background-color: #f1f5f9;
-      color: var(--text-muted);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .filter-btn:hover {
-      background-color: #e2e8f0;
-      color: var(--text-main);
-    }
-
-    .filter-btn.active {
-      background-color: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
     }
 
     #loading {
@@ -490,11 +464,6 @@
       color: var(--text-muted);
       margin-top: 6px;
     }
-
-    @media (hover: none) {
-      #journey-text:hover span { opacity: 1; }
-      #journey-text:hover::after { opacity: 0; }
-    }
   </style>
 </head>
 <body>
@@ -511,13 +480,7 @@
 
     <div class="search-box">
       <input type="text" id="keyword" placeholder="フルネームを入れてください">
-      <button id="search-btn" class="search-btn">検索する</button>
-    </div>
-
-    <div id="filter-container" class="filter-tabs">
-      <button class="filter-btn" data-term="すべて">すべて</button>
-      <button class="filter-btn" data-term="前期">前期</button>
-      <button class="filter-btn" data-term="後期" id="default-term-btn">後期</button>
+      <button id="search-btn" class="search-btn" onclick="performSearch()">検索する</button>
     </div>
 
     <div id="loading">
@@ -557,12 +520,7 @@
 
   <script>
     let allResults = [];
-    let currentFilter = getDefaultTerm();
-
-    function getDefaultTerm() {
-      const month = new Date().getMonth() + 1;
-      return (month >= 4 && month <= 9) ? '前期' : '後期';
-    }
+    let currentFilter = 'すべて';
 
     function hasValidVideoExtension(filename) {
       if (!filename) return false;
@@ -574,21 +532,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      const searchBtn = document.getElementById('search-btn');
       const keywordInput = document.getElementById('keyword');
-
-      if (searchBtn) {
-        searchBtn.onclick = performSearch;
-      }
-      
       if (keywordInput) {
-        keywordInput.onkeypress = function(e) {
+        keywordInput.addEventListener('keypress', function(e) {
           if (e.key === 'Enter') {
             performSearch();
           }
-        };
+        });
       }
 
+      // テーマ切り替え処理
       const themeToggleBtn = document.getElementById('theme-toggle');
       const themeIcon = document.getElementById('theme-icon');
       const themeText = document.getElementById('theme-text');
@@ -620,22 +573,6 @@
           themeIcon.innerHTML = `<path d="${moonPath}"/>`;
           themeText.textContent = 'ダークモード';
           localStorage.setItem('theme', 'light');
-        }
-      });
-
-      const filterBtns = document.querySelectorAll('.filter-btn');
-      filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-          filterBtns.forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-          currentFilter = this.getAttribute('data-term');
-          renderTable();
-        });
-      });
-
-      filterBtns.forEach(btn => {
-        if (btn.getAttribute('data-term') === currentFilter) {
-          btn.classList.add('active');
         }
       });
     });
@@ -688,12 +625,7 @@
       const cardContainer = document.getElementById('mobile-card-container');
       const tableContainer = document.getElementById('result-container');
 
-      const filtered = allResults.filter(r => {
-        if (currentFilter === 'すべて') {
-          return true;
-        }
-        return r.term === currentFilter;
-      });
+      const filtered = allResults;
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="empty-message">該当するデータが見つかりませんでした。</td></tr>';
@@ -760,7 +692,7 @@
         let statusHtml = '';
 
         if (isSub) {
-          if (isOriginalSubmitted) {
+          if (r.isManualVerified === true) {
             statusHtml = '<span class="badge status-submitted">提出済み</span>';
           } else {
             if (!hasValidVideoExtension(r.fileName)) {
