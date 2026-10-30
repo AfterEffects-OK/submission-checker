@@ -1190,20 +1190,32 @@
             });
 
             filtered.sort((a, b) => {
-                let comparison = 0;
-                if (currentSortColumn === 'requirement') {
-                    let valA = a.requirement || '';
-                    let valB = b.requirement || '';
-                    comparison = valA.localeCompare(valB, 'ja');
-                } else if (currentSortColumn === 'status') {
-                    comparison = a.submittedCount - b.submittedCount;
-                    if (comparison === 0) {
-                        let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
-                        let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
-                        comparison = rateA - rateB;
-                    }
+              let comparison = 0;
+              if (currentSortColumn === 'requirement') {
+                let valA = a.requirement || '';
+                let valB = b.requirement || '';
+                comparison = valA.localeCompare(valB, 'ja');
+              } else if (currentSortColumn === 'status') {
+                comparison = a.submittedCount - b.submittedCount;
+                if (comparison === 0) {
+                  let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
+                  let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
+                  comparison = rateA - rateB;
                 }
-                return currentSortDirection === 'asc' ? comparison : -comparison;
+              } else if (currentSortColumn === 'lecture') {
+                let valA = a.lecture || '';
+                let valB = b.lecture || '';
+                comparison = valA.localeCompare(valB, 'ja');
+              } else if (currentSortColumn === 'deadline') {
+                let valA = a.deadline || '';
+                let valB = b.deadline || '';
+                comparison = valA.localeCompare(valB);
+              } else if (currentSortColumn === 'rate') {
+                let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
+                let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
+                comparison = rateA - rateB;
+              }
+              return currentSortDirection === 'asc' ? comparison : -comparison;
             });
 
             renderDashboard(filtered);
@@ -1219,8 +1231,8 @@
         
             // すべてのソートアイコンをクリア
             ['requirement', 'status', 'lecture', 'deadline', 'rate'].forEach(col => {
-                const icon = document.getElementById('sort-icon-' + col);
-                if (icon) icon.textContent = '';
+              const icon = document.getElementById('sort-icon-' + col);
+              if (icon) icon.textContent = '';
             });
         
             // アクティブな列にアイコンを表示
