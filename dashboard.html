@@ -211,17 +211,19 @@
             text-align: left;
         }
         th, td {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 15px;
-            transition: border-color 0.2s ease;
+          padding: 16px 20px; 
+          border-bottom: 1px solid var(--border-color); 
+          font-size: 15px; 
+          transition: border-color 0.2s ease; 
         }
         th {
-            background-color: var(--filter-bg);
-            color: var(--text-muted);
-            font-weight: 700;
-            font-size: 13px;
-            white-space: nowrap;
+          background-color: var(--filter-bg); 
+          color: var(--text-muted); 
+          font-weight: 700; 
+          font-size: 13px; 
+          white-space: nowrap; 
+          padding-top: 10px;    /* ヘッダー上の余白を狭くする */
+          padding-bottom: 10px; /* ヘッダー下の余白を狭くする */
         }
         th.sortable {
             cursor: pointer;
