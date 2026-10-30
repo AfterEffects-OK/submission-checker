@@ -699,11 +699,17 @@
     });
 
     function performSearch() {
-      const keyword = document.getElementById('keyword').value.trim();
-      if (!keyword) {
+      const rawKeyword = document.getElementById('keyword').value.trim();
+      if (!rawKeyword) {
         alert('検索キーワードを入力してください。');
         return;
       }
+
+      // 💡 入力されたキーワードからスペースや異体字（異体字セレクタ）をすべて正規化（除外）する
+      const keyword = rawKeyword
+        .replace(/[\s ]+/g, '')
+        .replace(/[\uE000-\F8FF]/g, '')
+        .replace(/[\uFE00-\uFE0F]/g, '');
 
       document.getElementById('loading').style.display = 'flex';
       document.getElementById('result-table').style.display = 'none';
