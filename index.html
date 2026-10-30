@@ -606,9 +606,12 @@
         return;
       }
 
-      // 入力値から半角・全角スペースを除外
-      const keyword = rawKeyword.replace(/[\s ]+/g, '');
-
+      // ★半角・全角スペースに加えて、見えない異体字セレクタや結合文字も完全に除去する
+      const keyword = rawKeyword
+        .replace(/[\s ]+/g, '')
+        .replace(/[\uFE00-\uFE0F]/g, '')
+        .replace(/[\u0300-\u036f]/g, '');
+    
       document.getElementById('loading').style.display = 'flex';
       document.getElementById('result-table').style.display = 'none';
       document.getElementById('mobile-card-container').innerHTML = '';
