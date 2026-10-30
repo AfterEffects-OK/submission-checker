@@ -20,6 +20,7 @@
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     }
 
+    /* ▼ 追加：ダークモード時の配色設定 */
     body.dark-mode {
       --bg-color: #0f172a;
       --card-bg: #1e293b;
@@ -29,45 +30,54 @@
       --primary-light: #064e3b;
     }
 
+    /* ▼ 追加：ダークモード時のテーブル・入力欄の背景色の補正 */
     body.dark-mode .table-container {
       background: var(--card-bg);
       border-color: var(--border-color);
     }
+
     body.dark-mode th {
       background-color: #1a2332;
       color: var(--text-muted);
     }
+
     body.dark-mode tr:hover td {
       background-color: rgba(255, 255, 255, 0.03);
     }
+
     body.dark-mode .search-box {
       background: #111827;
       border-color: var(--border-color);
     }
+
     body.dark-mode .search-box:focus-within {
       background: var(--card-bg);
       border-color: var(--primary);
     }
+
     body.dark-mode .filter-btn {
       background-color: #1e293b;
       color: var(--text-muted);
       border-color: var(--border-color);
     }
+
     body.dark-mode .filter-btn:hover {
       background-color: #334155;
       color: var(--text-main);
     }
+
     body.dark-mode .filter-btn.active {
       background-color: var(--primary);
       color: white;
       border-color: var(--primary);
       box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
     }
+
     body.dark-mode .mobile-card {
       background: var(--card-bg);
       border-color: var(--border-color);
     }
-
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg-color);
@@ -86,7 +96,6 @@
       box-shadow: var(--shadow);
       box-sizing: border-box;
       border: 1px solid rgba(226, 232, 240, 0.8);
-      position: relative;
     }
 
     .header-area {
@@ -163,8 +172,35 @@
       transform: scale(0.98);
     }
 
+    /* 【前期・後期のボタン】普段は非表示にしておき、表示させたいときはコメントアウトを外してください */
     .filter-tabs {
       display: none !important;
+    }
+
+    /* 各タブボタンのデザイン（検索ボタンや周りのトーンに統一） */
+    .filter-btn {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      background-color: #f1f5f9;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      background-color: #e2e8f0;
+      color: var(--text-main);
+    }
+
+    /* 選択中（アクティブ）のボタンのデザイン（緑色のメインカラーに統一） */
+    .filter-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
     }
 
     #loading {
@@ -191,17 +227,19 @@
       to { transform: rotate(360deg); }
     }
 
+    /* PC用テーブルコンテナ */
     .table-container {
-      width: 100%;
-      overflow-x: hidden;
-      margin-top: 12px;
-      border: none;
-      border-radius: 12px;
-      background: #fff;
+        width: 100%; 
+        overflow-x: hidden; 
+        margin-top: 12px; 
+        border: none; /* ← 普段は非表示（ボーダーなし）にする */
+        border-radius: 12px; 
+        background: #fff; 
     }
-
+    
+    /* 表が表示されているときに適用する枠線のスタイル */
     .table-container.has-table {
-      border: 1px solid var(--border-color);
+        border: 1px solid var(--border-color); /* 表があるときだけ枠線を表示 */
     }
 
     table {
@@ -235,10 +273,12 @@
       background-color: #f8fafc;
     }
 
+    /* 特定の列をセンタリングするスタイル */
     th.col-center, td.col-center {
       text-align: center !important;
     }
 
+    /* スマホ用カードリスト */
     #mobile-card-container {
       display: none;
       flex-direction: column;
@@ -303,8 +343,10 @@
       font-weight: 700;
       color: var(--text-main);
     }
-
-    .mobile-card-student svg, .mobile-card-lecture svg {
+    
+    /* ▼ スマホカード内のSVGアイコンサイズ調整 */
+    .mobile-card-student svg,
+    .mobile-card-lecture svg {
       width: 14px;
       height: 14px;
       fill: currentColor;
@@ -312,6 +354,7 @@
       margin-right: 6px;
     }
 
+    /* 提出状況バッジ */
     .badge {
       display: inline-block;
       padding: 6px 14px;
@@ -333,12 +376,14 @@
       box-shadow: 0 2px 5px rgba(153, 27, 27, 0.1);
     }
 
+    /* 評価不能ファイル用バッジ（黄みのある警告色） */
     .status-invalid {
       background-color: #fef3c7;
       color: #b45309;
       box-shadow: 0 2px 5px rgba(180, 83, 9, 0.1);
     }
 
+    /* 必須提出バッジ（青系） */
     .req-badge-required {
       display: inline-block;
       padding: 5px 12px;
@@ -350,6 +395,7 @@
       border: 1px solid #bae6fd;
     }
 
+    /* 任意提出バッジ（グレー系） */
     .req-badge-optional {
       display: inline-block;
       padding: 5px 12px;
@@ -361,6 +407,7 @@
       border: 1px solid #e2e8f0;
     }
 
+    /* 期限超過・未提出時の赤文字強調スタイル */
     .deadline-overdue {
       color: #dc2626 !important;
       font-weight: 700;
@@ -387,18 +434,46 @@
       font-weight: 500;
     }
 
+    /* レスポンシブ切替（画面幅 768px 以下でスマホ用カード表示に切り替え） */
     @media (max-width: 768px) {
-      body { padding: 16px 8px; }
+      body {
+        padding: 16px 8px;
+      }
       .header-area { text-align: left; }
-      .container { padding: 24px 16px; border-radius: 12px; box-shadow: none; border: none; background: transparent; }
-      h2 { font-size: 22px; }
-      .search-box { flex-direction: column; background: #fff; padding: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
-      input[type="text"] { padding: 12px 12px; }
-      button.search-btn { width: 100%; padding: 14px; border-radius: 8px; }
-      .table-container { display: none !important; }
-      #mobile-card-container { display: flex !important; }
+      
+      .container {
+        padding: 24px 16px;
+        border-radius: 12px;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+      }
+      h2 {
+        font-size: 22px;
+      }
+      .search-box {
+        flex-direction: column;
+        background: #fff;
+        padding: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      }
+      input[type="text"] {
+        padding: 12px 12px;
+      }
+      button.search-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 8px;
+      }
+      .table-container {
+        display: none !important;
+      }
+      #mobile-card-container {
+        display: flex !important;
+      }
     }
 
+    /* テーマ切り替えボタンのスタイル */
     .theme-toggle-btn {
       position: absolute;
       top: 24px;
@@ -416,54 +491,69 @@
       gap: 8px;
       transition: all 0.2s ease;
     }
-
     .theme-toggle-btn:hover {
       background: var(--border-color);
     }
-
     .theme-toggle-btn svg {
       width: 16px;
       height: 16px;
       fill: currentColor;
     }
-
-    #journey-text {
+    .container {
       position: relative;
-      cursor: default;
-      font-size: 10px;
-      color: var(--text-muted);
-      margin: 0;
-    }
-    #journey-text span, #journey-text::after {
-      transition: opacity 0.4s ease-in-out;
-    }
-    #journey-text::after {
-      content: attr(data-ja);
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      opacity: 0;
-    }
-    #journey-text:hover span {
-      opacity: 0;
-    }
-    #journey-text:hover::after {
-      opacity: 1;
     }
 
-    footer.text-center {
-      text-align: center !important;
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: none;
-    }
+    /* --- フッターテキストのホバーアニメーション --- */
+        #journey-text {
+            position: relative; /* ::after疑似要素を絶対配置するための基準 */
+            cursor: default; /* テキスト選択カーソルではなく、通常のカーソルを表示 */
+            font-size: 10px;  /* ここで文字サイズを小さめに調整 */
+            color: var(--text-muted);
+            margin: 0;
+        }
 
-    footer .text-xs {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
+        #journey-text span,
+        #journey-text::after {
+            transition: opacity 0.4s ease-in-out; /* 透明度を滑らかに変化させる */
+        }
+
+        #journey-text::after {
+            content: attr(data-ja); /* data-ja属性から日本語テキストを取得 */
+            position: absolute; /* 元のテキストの上に重ねて表示 */
+            top: 0;
+            left: 0;
+            right: 0;
+            opacity: 0; /* 初期状態では非表示 */
+        }
+
+        #journey-text:hover span { 
+            opacity: 0; /* ホバー時に元の英語テキストを非表示に */
+        } 
+        
+        #journey-text:hover::after { 
+            opacity: 1; /* ホバー時に日本語テキストを表示 */
+        }
+
+        /* フッター全体のコンテナを中央揃え＆余白調整 */
+        footer.text-center {
+            text-align: center !important;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: none;
+        }
+
+        /* 著作権表示の文字サイズも小さくして中央に配置 */
+        footer .text-xs {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* スマホなどのタッチデバイスではホバー効果を無効化（ホバー残り防止） */
+        @media (hover: none) {
+            #journey-text:hover span { opacity: 1; }
+            #journey-text:hover::after { opacity: 0; }
+        }
   </style>
 </head>
 <body>
@@ -477,17 +567,23 @@
       <h2>課題提出状況 検索システム</h2>
       <p class="subtitle">あなたの氏名を入力して提出状況を確認します。</p>
     </div>
-
+    
     <div class="search-box">
       <input type="text" id="keyword" placeholder="フルネームを入れてください">
-      <button id="search-btn" class="search-btn" onclick="performSearch()">検索する</button>
+      <button id="search-btn" class="search-btn">検索する</button>
     </div>
 
+    <div id="filter-container" class="filter-tabs">
+      <button class="filter-btn" data-term="すべて">すべて</button>
+      <button class="filter-btn" data-term="前期">前期</button>
+      <button class="filter-btn" data-term="後期" id="default-term-btn">後期</button>
+    </div>
+    
     <div id="loading">
       <div class="spinner"></div>
       <span>検索中...</span>
     </div>
-
+    
     <!-- PC用テーブル -->
     <div id="result-container" class="table-container">
       <table id="result-table" style="display: none;">
@@ -511,43 +607,51 @@
     <div id="mobile-card-container"></div>
   </div>
 
-  <footer class="text-center">
-    <p id="journey-text" data-ja="学びの旅は、ここから始まる・・・">
-      <span>Your journey of learning begins here.</span>
-    </p>
-    <p class="text-xs">&copy; AfterEffects_OK All Rights Reserved.</p>
+  <footer class="mt-8 pt-8 border-t border-gray-200 text-center">
+      <!-- ホバーで日本語訳に切り替わるテキスト -->
+      <p id="journey-text" class="text-sm text-gray-500" data-ja="学びの旅は、ここから始まる・・・">
+          <span>Your journey of learning begins here.</span> <!-- 初期表示の英語テキスト -->
+      </p>
+      <p class="mt-1 text-xs text-gray-400">&copy; AfterEffects_OK All Rights Reserved.</p>
   </footer>
 
   <script>
     let allResults = [];
-    let currentFilter = 'すべて';
+    let currentFilter = getDefaultTerm();
 
+    function getDefaultTerm() {
+      const month = new Date().getMonth() + 1;
+      return (month >= 4 && month <= 9) ? '前期' : '後期';
+    }
+
+    // ファイル名の最後の4文字分（例: .mp4 など）が動画拡張子リストに含まれているかチェックする関数
     function hasValidVideoExtension(filename) {
       if (!filename) return false;
       const lower = String(filename).trim().toLowerCase();
       if (lower.length < 4) return false;
+      
+      // 最後の4文字を取得（例: ".mp4", ".mov" など）
       const last4 = lower.slice(-4);
       const validExtensions = ['.mp4', '.mov', '.avi', '.m4v', '.wmv', '.mkv', '.webm', '.flv'];
+      
       return validExtensions.includes(last4);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      const keywordInput = document.getElementById('keyword');
-      if (keywordInput) {
-        keywordInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') {
-            performSearch();
-          }
-        });
-      }
+      document.getElementById('search-btn').addEventListener('click', performSearch);
+      document.getElementById('keyword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          performSearch();
+        }
+      });
 
-      // テーマ切り替え処理
       const themeToggleBtn = document.getElementById('theme-toggle');
       const themeIcon = document.getElementById('theme-icon');
       const themeText = document.getElementById('theme-text');
+
       const moonPath = "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z";
       const sunPath = "M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z";
-      
+
       const savedTheme = localStorage.getItem('theme');
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const isInitialDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
@@ -565,6 +669,7 @@
       themeToggleBtn.addEventListener('click', function() {
         document.body.classList.toggle('dark-mode');
         const isDarkMode = document.body.classList.contains('dark-mode');
+        
         if (isDarkMode) {
           themeIcon.innerHTML = `<path d="${sunPath}"/>`;
           themeText.textContent = 'ライトモード';
@@ -575,20 +680,30 @@
           localStorage.setItem('theme', 'light');
         }
       });
+
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentFilter = this.getAttribute('data-term');
+          renderTable();
+        });
+      });
+
+      filterBtns.forEach(btn => {
+        if (btn.getAttribute('data-term') === currentFilter) {
+          btn.classList.add('active');
+        }
+      });
     });
 
     function performSearch() {
-      const rawKeyword = document.getElementById('keyword').value.trim();
-      if (!rawKeyword) {
+      const keyword = document.getElementById('keyword').value.trim();
+      if (!keyword) {
         alert('検索キーワードを入力してください。');
         return;
       }
-
-      // 💡 入力されたキーワードからスペースや異体字（異体字セレクタ）をすべて正規化して除外する
-      const keyword = rawKeyword
-        .replace(/[\s ]+/g, '')
-        .replace(/[\uE000-\F8FF]/g, '')
-        .replace(/[\uFE00-\uFE0F]/g, '');
 
       document.getElementById('loading').style.display = 'flex';
       document.getElementById('result-table').style.display = 'none';
@@ -623,14 +738,21 @@
       const table = document.getElementById('result-table');
       const tbody = document.getElementById('result-body');
       const cardContainer = document.getElementById('mobile-card-container');
-      const tableContainer = document.getElementById('result-container');
+      const tableContainer = document.getElementById('result-container'); // ★ここを追加
 
-      const filtered = allResults;
+      const filtered = allResults.filter(r => {
+        if (currentFilter === 'すべて') {
+          return true;
+        }
+        return r.term === currentFilter;
+      });
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="empty-message">該当するデータが見つかりませんでした。</td></tr>';
         table.style.display = 'table';
         cardContainer.innerHTML = '<div class="empty-message">該当するデータが見つかりませんでした。</div>';
+        
+        // ★ 0件のときは枠線を非表示にするクラスを外す
         if (tableContainer) tableContainer.classList.remove('has-table');
         return;
       }
@@ -639,14 +761,20 @@
       let tableHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
+        
+        // 元の「課題提出」シートのフラグがTRUEかどうか
         let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
-        let isSub = isOriginalSubmitted;
-        let statusHtml = '';
+        
+        // 提出済み判定の全体
+        let isSub = isOriginalSubmitted; // ※バックエンドでサブフォルダ自動照合も含んだ判定結果になっている前提
 
+        let statusHtml = '';
         if (isSub) {
+          // 課題提出シートのフラグが TRUE（手動確認済み）のときは無条件で「提出済み」
           if (r.isManualVerified === true) {
             statusHtml = '<span class="badge status-submitted">提出済み</span>';
           } else {
+            // FALSEのときはファイル名の末尾4文字が動画拡張子かどうかをチェック
             if (!hasValidVideoExtension(r.fileName)) {
               statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
             } else {
@@ -656,9 +784,10 @@
         } else {
           statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
         }
-
+        
         let isOverdue = !isSub && isDeadlinePassed(r.deadline);
         let deadlineStyle = isOverdue ? 'color: #dc2626; font-weight: 700;' : 'color: var(--text-muted);';
+
         let reqText = escapeHtml(r.requirement);
         let reqClass = (reqText.includes('必') || reqText.includes('必須')) ? 'req-badge-required' : 'req-badge-optional';
         let reqHtml = '<span class="' + reqClass + '">' + reqText + '</span>';
@@ -681,18 +810,21 @@
       }
       tbody.innerHTML = tableHtml;
       table.style.display = 'table';
+      
+      // ★ データがある（表が出る）ときは枠線を表示するクラスを追加する
       if (tableContainer) tableContainer.classList.add('has-table');
-
+      
       // 2. スマホ用 2段カードリストのHTML生成
       let cardHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
+        
         let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
         let isSub = isOriginalSubmitted;
-        let statusHtml = '';
 
+        let statusHtml = '';
         if (isSub) {
-          if (r.isManualVerified === true) {
+          if (isOriginalSubmitted) {
             statusHtml = '<span class="badge status-submitted">提出済み</span>';
           } else {
             if (!hasValidVideoExtension(r.fileName)) {
@@ -707,13 +839,14 @@
 
         let isOverdue = !isSub && isDeadlinePassed(r.deadline);
         let deadlineClass = isOverdue ? 'deadline-overdue' : '';
+
         let reqText = escapeHtml(r.requirement);
         let reqClass = (reqText.includes('必') || reqText.includes('必須')) ? 'req-badge-required' : 'req-badge-optional';
         let reqHtml = '<span class="' + reqClass + '">' + reqText + '</span>';
 
         const userSvg = '<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
         const bookSvg = '<svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>';
-
+    
         cardHtml += '<div class="mobile-card">';
         cardHtml += '<div class="mobile-card-student">' + userSvg + escapeHtml(r.studentName) + '</div>';
         cardHtml += '<div class="mobile-card-upper">';
