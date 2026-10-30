@@ -144,18 +144,19 @@
 
         /* プルダウンフィルターエリア（ラベルが左側の横並び） */
         .filter-section {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-            background: var(--filter-bg);
-            padding: 16px 8px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-            max-height: 200px;
-            overflow: hidden;
-            opacity: 1;
+          display: flex; 
+          gap: 24px; 
+          flex-wrap: wrap; 
+          margin-top: -8px;       /* 上のボタン・ヘッダーエリアとの間隔を詰める */
+          margin-bottom: 20px;    /* 下のテーブルまでの余白 */
+          background: var(--filter-bg); 
+          padding: 12px 16px;     /* パディングも少しすっきりさせる場合 */
+          border-radius: 12px; 
+          border: 1px solid var(--border-color); 
+          transition: all 0.3s ease; 
+          max-height: 200px; 
+          overflow: hidden; 
+          opacity: 1; 
         }
         .filter-section.collapsed {
             max-height: 0;
