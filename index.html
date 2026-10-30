@@ -704,11 +704,8 @@
         return;
       }
 
-      // 💡【修正点】入力されたキーワードからスペースや異体字（異体字セレクタ等）をすべて正規化して除外する
-      const keyword = rawKeyword
-        .replace(/[\s ]+/g, '')
-        .replace(/[\uE000-\F8FF]/g, '')
-        .replace(/[\uFE00-\uFE0F]/g, '');
+      // 💡 変更点：入力されたキーワードからスペース（半角・全角）を削除する処理のみを追加
+      const keyword = rawKeyword.replace(/[\s ]+/g, '');
 
       document.getElementById('loading').style.display = 'flex';
       document.getElementById('result-table').style.display = 'none';
