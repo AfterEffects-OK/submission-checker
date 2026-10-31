@@ -853,9 +853,9 @@
             </div>
             
             <div class="controls-bar">
-                <!-- ディレイ時間選択用プルダウン -->
+                <!-- ラベルを「ディレイ:」に変更 -->
                 <div class="delay-select-group">
-                    <label for="delay-select">アニメーション間隔:</label>
+                    <label for="delay-select">ディレイ:</label>
                     <select id="delay-select" onchange="onDelayChange()">
                         <option value="0.01">高速 (0.01秒)</option>
                         <option value="0.03">標準 (0.03秒)</option>
@@ -1219,7 +1219,6 @@
             applyFilters();
         }
 
-        /* ディレイ時間が変更されたときに再描画して即座に反映させる関数 */
         function onDelayChange() {
             applyFilters();
         }
@@ -1276,7 +1275,6 @@
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
 
-            // セレクトボックスから選択されているディレイ時間の倍率を取得（未選択時は0.7秒をデフォルトとする）
             const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.7);
 
             let html = '';
@@ -1345,7 +1343,6 @@
                 }
                 let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nよみ: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
-                // 選択されたディレイ時間間隔（delayStep）にインデックスを掛け合わせて計算
                 const animationDelay = (stIdx * delayStep).toFixed(2);
 
                 html += '<div class="' + cardClass + '" style="animation-delay: ' + animationDelay + 's;">';
