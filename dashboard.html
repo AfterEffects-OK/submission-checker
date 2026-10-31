@@ -1543,9 +1543,16 @@
           }
 
         function animateProgressBars() {
+          // まずすべてのバーの幅を強制的に 0% にセット
+          const bars = document.querySelectorAll('.progress-bar-fill');
+          bars.forEach(bar => {
+            bar.style.width = '0%';
+          });
+        
+          // 1フレーム遅らせてから、data-percentage の目標幅を適用してアニメーションを発火させる
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+              bars.forEach(bar => {
                 const targetWidth = bar.getAttribute('data-percentage');
                 if (targetWidth) {
                   bar.style.width = targetWidth + '%';
