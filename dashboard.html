@@ -189,7 +189,6 @@
             stroke-linejoin: round;
         }
 
-        /* 狭い画面用のドロップダウンメニュー */
         .controls-dropdown {
             display: none;
             position: absolute;
@@ -216,7 +215,6 @@
             box-sizing: border-box;
         }
 
-        /* 画面幅が1050px以下になったらハンバーガーメニューに切り替え */
         @media screen and (max-width: 1050px) {
             .controls-bar > .control-btn,
             .controls-bar > .delay-select-group,
@@ -491,6 +489,15 @@
             justify-content: space-between;
             align-items: center;
             opacity: 0;
+            z-index: 1; /* 通常時の重なり順ベース */
+            transition: z-index 0s ease 0.2s; /* ホバー解除時に遅延してz-indexを戻す */
+        }
+
+        /* ★ 修正：ホバー時や複数ファイル持ちの場合にカード自体の z-index を最前面（999）に引き上げる */
+        .student-card:hover,
+        .student-card.has-multiple:hover {
+            z-index: 999 !important;
+            transition: z-index 0s ease 0s;
         }
 
         .student-card.anim-playing {
@@ -543,6 +550,7 @@
             z-index: 10;
         }
 
+        /* ★ 修正：ツールチップの z-index を超高水準 (10000) に設定し、絶対にはみ出し・背後に入り込まないようにする */
         .student-card .card-tooltip {
             visibility: hidden;
             opacity: 0;
@@ -559,8 +567,8 @@
             font-weight: 500;
             white-space: pre;
             line-height: 1.5;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            z-index: 10000 !important;
             transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
             pointer-events: none;
         }
@@ -914,7 +922,6 @@
             </div>
             
             <div class="controls-bar" style="position: relative;">
-                <!-- 通常の横並びボタン群 -->
                 <button id="theme-toggle" class="theme-toggle-btn" title="表示モード切替">
                     <svg id="theme-icon" viewBox="0 0 24 24"></svg>
                     <span id="theme-text">ダークモード</span>
@@ -936,13 +943,11 @@
                     <span>検索・フィルターを非表示</span>
                 </button>
 
-                <!-- 幅が狭くなって横並びしきれなくなったときに出現するハンバーガーボタン -->
                 <button id="hamburger-menu-btn" class="hamburger-btn" type="button" onclick="toggleHamburgerMenu(event)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     <span>メニュー</span>
                 </button>
 
-                <!-- ハンバーガーメニューを開いたときのドロップダウン -->
                 <div id="controls-dropdown" class="controls-dropdown">
                     <button id="theme-toggle-drop" class="theme-toggle-btn" type="button" onclick="document.getElementById('theme-toggle').click(); closeHamburgerMenu();" title="表示モード切替">
                         <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -1048,13 +1053,11 @@
             }
         });
 
-        // ハンバーガーメニューの開閉制御（イベント伝播を止めて確実にトグルする）
         function toggleHamburgerMenu(e) {
             if (e) e.stopPropagation();
             const dropdown = document.getElementById('controls-dropdown');
             dropdown.classList.toggle('active');
         }
-
         function closeHamburgerMenu() {
             const dropdown = document.getElementById('controls-dropdown');
             if (dropdown) {
@@ -1062,7 +1065,6 @@
             }
         }
 
-        // メニュー外をクリックしたら閉じる
         window.addEventListener('click', function(e) {
             const btn = document.getElementById('hamburger-menu-btn');
             const dropdown = document.getElementById('controls-dropdown');
@@ -1073,7 +1075,6 @@
             }
         });
 
-        // ディレイ選択の同期
         function syncDelay(val) {
             document.getElementById('delay-select').value = val;
             onDelayChange();
@@ -1607,7 +1608,7 @@
         }
 
         function adjustCardNames() {
-            document.querySelectorAll('.student-card-name').forEac(el => {
+            document.querySelectorAll('.student-card-name').forEach(el => {
                 const parent = el.parentElement;
                 if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
                     const scale = parent.clientWidth / el.scrollWidth;
