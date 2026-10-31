@@ -1465,8 +1465,9 @@
                 html += '<span class="total-num">' + task.totalCount + '人</span>';
                 html += '</td>';
 
+                // ★ style="width: 0%;" を付与してアニメーションの基準点を作成
                 html += '<td style="text-align: center;">';
-                html += '<div class="progress-bar-container"><div class="progress-bar-fill" data-percentage="' + percentage + '"></div></div>';
+                html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
                 html += '<span style="font-weight: 700; font-size: 14px;">' + percentage + '%</span>';
                 html += '</td>';
                 html += '</tr>';
@@ -1522,9 +1523,10 @@
                 }
                 html += '</div>';
 
+                // ★ こちらも style="width: 0%;" を付与
                 html += '<div class="mobile-progress-row">';
                 html += '<div class="mobile-progress-text">提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</div>';
-                html += '<div class="mobile-progress-bar-container"><div class="progress-bar-fill" data-percentage="' + percentage + '"></div></div>';
+                html += '<div class="mobile-progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
                 html += '</div>';
 
                 html += '<button class="mobile-toggle-btn" onclick="toggleMobileDetail(\'' + escapeHtml(taskKey) + '\')">' + btnText + '</button>';
