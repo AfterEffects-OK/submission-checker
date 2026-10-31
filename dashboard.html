@@ -1543,16 +1543,18 @@
           }
 
         function animateProgressBars() {
-              // すべてのプログレスバーの幅を、データ属性などに持たせたパーセンテージ値に向かってアニメーションさせる
-              setTimeout(() => {
-                document.querySelectorAll('.progress-bar-fill').forEach(bar => {
-                  const targetWidth = bar.getAttribute('data-percentage');
-                  if (targetWidth) {
-                    bar.style.width = targetWidth + '%';
-                  }
-                });
-              }, 50);
-            }
+          // 一度ブラウザに 0% の状態を確実に描画させてから、次のフレームで目標の幅に変更してアニメーションさせる
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+                const targetWidth = bar.getAttribute('data-percentage');
+                if (targetWidth) {
+                  bar.style.width = targetWidth + '%';
+                }
+              });
+            });
+          });
+        }
 
         function toggleDetail(rowId, mainRowId, taskKey) {
             const detailRow = document.getElementById(rowId);
