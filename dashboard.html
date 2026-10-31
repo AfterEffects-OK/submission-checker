@@ -393,6 +393,19 @@
             gap: 12px;
             position: relative;
         }
+
+        /* --- 学生カードが上から0.5秒かけて降ってくるアニメーション定義 --- */
+        @keyframes dropDownCard {
+            0% {
+                opacity: 0;
+                transform: translateY(-25px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .student-card {
             position: relative; 
             border-radius: 8px;
@@ -400,6 +413,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            /* 0.5秒かけて上から降りてくるアニメーションを適用 */
+            animation: dropDownCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0; /* アニメーション開始前は非表示にしておく */
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
         }
 
@@ -1365,7 +1381,10 @@
                 }
                 let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nよみ: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
-                html += '<div class="' + cardClass + '">';
+                // 各カードに微小な遅延(0.03秒×インデックス)を与えて、上から順番にパラパラと落ちてくる演出
+                const animationDelay = (stIdx * 0.03).toFixed(2);
+
+                html += '<div class="' + cardClass + '" style="animation-delay: ' + animationDelay + 's;">';
                 html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
                 html += '<div class="student-info-wrapper">';
                 if (st.ruby) {
