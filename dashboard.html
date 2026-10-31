@@ -635,8 +635,8 @@
         .progress-bar-fill {
             background: var(--primary);
             height: 100%;
-            width: 0%;
-            transition: width 0.4s ease;
+            width: 0%; /* 初期状態は0%からスタート */
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); /* スムーズな伸びるアニメーション */
         }
 
         #loading {
@@ -1335,6 +1335,10 @@
         function renderDashboard(tasks) {
             renderDesktopTable(tasks);
             renderMobileCards(tasks);
+            // ページ表示およびデータ更新から「1秒後 (1000ms)」にバーがスーッと伸びるアニメーションを発火
+            setTimeout(() => {
+                animateProgressBars();
+            }, 1000);
         }
 
         // --- 共通学生カードHTML生成ヘルパー ---
@@ -1465,8 +1469,9 @@
                 html += '<span class="total-num">' + task.totalCount + '人</span>';
                 html += '</td>';
 
+                // 最初はwidth: 0%にしておき、data-percentageに目標値を保持
                 html += '<td style="text-align: center;">';
-                html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: ' + percentage + '%;"></div></div>';
+                html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
                 html += '<span style="font-weight: 700; font-size: 14px;">' + percentage + '%</span>';
                 html += '</td>';
                 html += '</tr>';
@@ -1521,9 +1526,10 @@
                 }
                 html += '</div>';
 
+                // スマホ用も同様に最初を0%にし、クラスを progress-bar-fill に統一
                 html += '<div class="mobile-progress-row">';
                 html += '<div class="mobile-progress-text">提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</div>';
-                html += '<div class="mobile-progress-bar-container"><div style="background: var(--primary); height: 100%; width: ' + percentage + '%;"></div></div>';
+                html += '<div class="mobile-progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
                 html += '</div>';
 
                 html += '<button class="mobile-toggle-btn" onclick="toggleMobileDetail(\'' + escapeHtml(taskKey) + '\')">' + btnText + '</button>';
@@ -1538,6 +1544,16 @@
 
             container.innerHTML = html;
             setTimeout(adjustCardNames, 10);
+        }
+
+        // --- プログレスバーを指定されたパーセンテージまで滑らかに伸ばすアニメーション関数 ---
+        function animateProgressBars() {
+            document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+                const targetWidth = bar.getAttribute('data-percentage');
+                if (targetWidth) {
+                    bar.style.width = targetWidth + '%';
+                }
+            });
         }
 
         function adjustCardNames() {
