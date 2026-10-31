@@ -1261,7 +1261,7 @@
             applyFilters();
         }
 
-        // 常に「最初からディレイ付きでアニメーション再生」と「現在位置での一時停止」を切り替える関数
+        // 確実な再生・一時停止の切り替え処理
         function toggleAnimationState(taskKey, btnElement) {
             const currentState = animationStates[taskKey] || 'playing';
             const grid = document.getElementById('student-grid-' + taskKey);
@@ -1270,7 +1270,7 @@
             const cards = grid.querySelectorAll('.student-card');
 
             if (currentState === 'playing') {
-                // 再生中 -> 一時停止（その場で位置を固定）
+                // 再生中 -> 一時停止（現在の位置・透明度を固定）
                 animationStates[taskKey] = 'paused';
                 cards.forEach(card => {
                     const computedStyle = window.getComputedStyle(card);
@@ -1278,23 +1278,21 @@
                     const currentY = matrix.m42;
                     const currentOpacity = computedStyle.opacity;
 
-                    card.classList.remove('anim-playing');
-                    card.classList.add('anim-paused');
+                    card.style.animation = 'none';
                     card.style.transform = `translateY(${currentY}px)`;
                     card.style.opacity = currentOpacity;
                 });
                 btnElement.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 再生';
                 btnElement.title = 'アニメーションを最初から再生';
             } else {
-                // 一時停止中 -> 再生（最初からディレイ付きで再スタート）
+                // 一時停止中 -> 再生（状態をクリアして最初からディレイ付きで再スタート）
                 animationStates[taskKey] = 'playing';
                 cards.forEach(card => {
+                    card.style.animation = '';
                     card.style.transform = '';
                     card.style.opacity = '';
-                    card.classList.remove('anim-paused');
-                    card.style.animation = 'none';
+                    card.classList.remove('anim-playing');
                     card.offsetHeight; // リフロートリガー
-                    card.style.animation = '';
                     card.classList.add('anim-playing');
                 });
                 btnElement.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> 一時停止';
@@ -1435,8 +1433,6 @@
 
                 if (animState === 'playing') {
                     cardClass += ' anim-playing';
-                } else {
-                    cardClass += ' anim-paused';
                 }
 
                 let fileDisplay = 'なし';
