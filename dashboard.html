@@ -324,7 +324,7 @@
             animation: spin 0.8s linear infinite;
         }
 
-        /* アニメーション再生・一時停止ボタン */
+        /* アニメーション再生ボタン */
         .anim-toggle-btn {
             display: inline-flex;
             align-items: center;
@@ -464,11 +464,6 @@
         /* アニメーション再生中クラス */
         .student-card.anim-playing {
             animation: dropDownCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* 一時停止中（現在の位置で凍結） */
-        .student-card.anim-paused {
-            animation: none !important;
         }
 
         .student-card.has-multiple::before,
@@ -1038,7 +1033,6 @@
         let currentSortDirection = 'asc';
         let expandedRowKeys = new Set();
         let studentSortPreferences = {};
-        let animationStates = {}; // 課題ごとのアニメーション状態管理 ('playing', 'paused')
 
         window.addEventListener('DOMContentLoaded', function() {
             loadAllData();
@@ -1261,43 +1255,26 @@
             applyFilters();
         }
 
-        // 確実な再生・一時停止の切り替え処理
-        function toggleAnimationState(taskKey, btnElement) {
-            const currentState = animationStates[taskKey] || 'playing';
+        // 再生ボタンを押したときにカードのアニメーションを最初から再実行する処理
+        function replayAnimation(taskKey, btnElement) {
             const grid = document.getElementById('student-grid-' + taskKey);
             if (!grid) return;
 
             const cards = grid.querySelectorAll('.student-card');
+            cards.forEach(card => {
+                card.style.animation = 'none';
+                card.classList.remove('anim-playing');
+                card.offsetHeight; // リフロートリガー
+                card.style.animation = '';
+                card.classList.add('anim-playing');
+            });
 
-            if (currentState === 'playing') {
-                // 再生中 -> 一時停止（現在の位置・透明度を固定）
-                animationStates[taskKey] = 'paused';
-                cards.forEach(card => {
-                    const computedStyle = window.getComputedStyle(card);
-                    const matrix = new DOMMatrix(computedStyle.transform);
-                    const currentY = matrix.m42;
-                    const currentOpacity = computedStyle.opacity;
-
-                    card.style.animation = 'none';
-                    card.style.transform = `translateY(${currentY}px)`;
-                    card.style.opacity = currentOpacity;
-                });
-                btnElement.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 再生';
-                btnElement.title = 'アニメーションを最初から再生';
-            } else {
-                // 一時停止中 -> 再生（状態をクリアして最初からディレイ付きで再スタート）
-                animationStates[taskKey] = 'playing';
-                cards.forEach(card => {
-                    card.style.animation = '';
-                    card.style.transform = '';
-                    card.style.opacity = '';
-                    card.classList.remove('anim-playing');
-                    card.offsetHeight; // リフロートリガー
-                    card.classList.add('anim-playing');
-                });
-                btnElement.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> 一時停止';
-                btnElement.title = 'アニメーションを一時停止';
-            }
+            // ボタンの一時的なフィードバック効果
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 再生中';
+            setTimeout(() => {
+                btnElement.innerHTML = originalHtml;
+            }, 600);
         }
 
         function sortStudents(students, sortMode) {
@@ -1351,9 +1328,7 @@
         function generateStudentCardsHtml(task, taskKey) {
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
-
             const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.3);
-            const animState = animationStates[taskKey] || 'playing'; // デフォルトは再生中
 
             let html = '';
 
@@ -1367,19 +1342,12 @@
             html += '再取得';
             html += '</button>';
 
-            // ディレイが「ややゆっくり(0.1)」以上の場合にアニメーション再生/一時停止ボタンを表示
+            // ディレイが「ややゆっくり(0.1)」以上の場合に再生ボタンを表示
             if (delayStep >= 0.1) {
-                if (animState === 'playing') {
-                    html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを一時停止">';
-                    html += '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
-                    html += '一時停止';
-                    html += '</button>';
-                } else {
-                    html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを最初から再生">';
-                    html += '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
-                    html += '再生';
-                    html += '</button>';
-                }
+                html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); replayAnimation(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを最初から再生">';
+                html += '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+                html += '再生';
+                html += '</button>';
             }
 
             html += '</div>';
@@ -1411,14 +1379,14 @@
             const sortedStudents = sortStudents(task.students, currentSortMode);
 
             sortedStudents.forEach((st, stIdx) => {
-                let cardClass = 'student-card unsubmitted';
+                let cardClass = 'student-card unsubmitted anim-playing';
                 let badge = '<span class="badge-unsubmitted">未提出</span>';
 
                 if (st.status === '評価不能' || st.status === '判定不能') {
-                    cardClass = 'student-card unknown';
+                    cardClass = 'student-card unknown anim-playing';
                     badge = '<span class="badge-unknown">評価不能</span>';
                 } else if (st.isSubmitted) {
-                    cardClass = 'student-card submitted';
+                    cardClass = 'student-card submitted anim-playing';
                     badge = '<span class="badge-submitted">提出済み</span>';
                 }
 
@@ -1429,10 +1397,6 @@
 
                 if (stIdx < 6) {
                     cardClass += ' tooltip-down';
-                }
-
-                if (animState === 'playing') {
-                    cardClass += ' anim-playing';
                 }
 
                 let fileDisplay = 'なし';
