@@ -458,19 +458,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            opacity: 0; /* 初期状態は非表示（アニメーション開始前） */
+            opacity: 0; /* 初期状態は非表示 */
         }
 
-        /* アニメーション再生中のクラス */
+        /* アニメーション再生中 */
         .student-card.anim-playing {
             animation: dropDownCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* 一時停止中の状態 */
+        /* 一時停止中（現在の状態をその場で凍結） */
         .student-card.anim-paused {
-            animation-play-state: paused !important;
-            opacity: 1 !important;
-            transform: translateY(0) !important;
+            animation: none !important;
         }
 
         .student-card.has-multiple::before,
@@ -1041,6 +1039,7 @@
         let expandedRowKeys = new Set();
         let studentSortPreferences = {};
         let animationStates = {}; // 課題ごとのアニメーション状態管理 ('playing', 'paused', 'stopped')
+        let animationTimers = {}; // 途中一時停止用のタイマー管理
 
         window.addEventListener('DOMContentLoaded', function() {
             loadAllData();
@@ -1263,7 +1262,7 @@
             applyFilters();
         }
 
-        // アニメーションの再生・一時停止を切り替える関数
+        // アニメーションの再生・一時停止・途中停止を管理する関数
         function toggleAnimationState(taskKey, btnElement) {
             const currentState = animationStates[taskKey] || 'stopped';
             const grid = document.getElementById('student-grid-' + taskKey);
@@ -1272,21 +1271,42 @@
             const cards = grid.querySelectorAll('.student-card');
 
             if (currentState === 'playing') {
-                // 再生中 -> 一時停止
+                // 再生中 -> 一時停止（現在アニメーション中のカードは途中位置で固定、未開始のカードは非表示のままにする）
                 animationStates[taskKey] = 'paused';
-                cards.forEach(card => card.classList.add('anim-paused'));
+                if (animationTimers[taskKey]) {
+                    clearTimeout(animationTimers[taskKey]);
+                }
+                cards.forEach(card => {
+                    const computedStyle = window.getComputedStyle(card);
+                    const matrix = new DOMMatrix(computedStyle.transform);
+                    const currentY = matrix.m42; // 現在のY軸移動量
+                    const currentOpacity = computedStyle.opacity;
+
+                    card.classList.remove('anim-playing');
+                    card.classList.add('anim-paused');
+                    // その位置・透明度でピタッと固定
+                    card.style.transform = `translateY(${currentY}px)`;
+                    card.style.opacity = currentOpacity;
+                });
                 btnElement.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 再生';
                 btnElement.title = 'アニメーションを再開';
             } else if (currentState === 'paused') {
-                // 一時停止中 -> 再開
+                // 一時停止中 -> 再開（凍結していた位置から再生を継続）
                 animationStates[taskKey] = 'playing';
-                cards.forEach(card => card.classList.remove('anim-paused'));
+                cards.forEach(card => {
+                    card.classList.remove('anim-paused');
+                    // 固定を解除してアニメーションを再開
+                    card.style.transform = '';
+                    card.style.opacity = '';
+                });
                 btnElement.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> 一時停止';
                 btnElement.title = 'アニメーションを一時停止';
             } else {
-                // 停止（初期）状態 -> 再生開始（ディレイ付きで最初から再生）
+                // 停止（初期）状態 -> 再生開始（ディレイ付きで1枚ずつ順番に降ってくる）
                 animationStates[taskKey] = 'playing';
                 cards.forEach(card => {
+                    card.style.transform = '';
+                    card.style.opacity = '';
                     card.classList.remove('anim-paused');
                     card.classList.add('anim-playing');
                 });
