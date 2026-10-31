@@ -111,6 +111,34 @@
             color: var(--primary);
         }
 
+        /* ディレイ切替用セレクトのコンポーネント */
+        .delay-select-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--filter-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .delay-select-group select {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+        .delay-select-group select:focus {
+            border-color: var(--primary);
+        }
+
         .theme-toggle-btn {
             background: var(--filter-bg);
             border: 1px solid var(--border-color);
@@ -825,6 +853,18 @@
             </div>
             
             <div class="controls-bar">
+                <!-- ディレイ時間選択用プルダウン -->
+                <div class="delay-select-group">
+                    <label for="delay-select">アニメーション間隔:</label>
+                    <select id="delay-select" onchange="onDelayChange()">
+                        <option value="0.01">高速 (0.01秒)</option>
+                        <option value="0.03">標準 (0.03秒)</option>
+                        <option value="0.1">ややゆっくり (0.1秒)</option>
+                        <option value="0.3">ゆっくり (0.3秒)</option>
+                        <option value="0.7" selected>超ゆっくり (0.7秒)</option>
+                    </select>
+                </div>
+
                 <button id="toggle-header-btn" class="control-btn" onclick="toggleHeader()">
                     <span>タイトルを非表示</span>
                 </button>
@@ -1176,44 +1216,12 @@
 
         function onStudentSortChange(taskKey, selectElement) {
             studentSortPreferences[taskKey] = selectElement.value;
-            const selectedLecture = document.getElementById('lecture-select').value;
-            const selectedKadai = document.getElementById('kadai-select').value;
+            applyFilters();
+        }
 
-            let filtered = allTasksData.filter(t => {
-                const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
-                const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
-                return matchLecture && matchKadai;
-            });
-
-            filtered.sort((a, b) => {
-            let comparison = 0;
-            if (currentSortColumn === 'requirement') {
-                let valA = a.requirement || '';
-                let valB = b.requirement || '';
-                comparison = valA.localeCompare(valB, 'ja');
-            } else if (currentSortColumn === 'status') {
-                comparison = a.submittedCount - b.submittedCount;
-                if (comparison === 0) {
-                    let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
-                    let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
-                    comparison = rateA - rateB;
-                }
-            } else if (currentSortColumn === 'lecture') {
-                let valA = a.lecture || '';
-                let valB = b.lecture || '';
-                comparison = valA.localeCompare(valB, 'ja');
-            } else if (currentSortColumn === 'deadline') {
-                let valA = a.deadline || '';
-                let valB = b.deadline || '';
-                comparison = valA.localeCompare(valB);
-            } else if (currentSortColumn === 'rate') {
-                let rateA = a.totalCount > 0 ? (a.submittedCount / a.totalCount) : 0;
-                let rateB = b.totalCount > 0 ? (b.submittedCount / b.totalCount) : 0;
-                comparison = rateA - rateB;
-            }
-            return currentSortDirection === 'asc' ? comparison : -comparison;
-        });
-            renderDashboard(filtered);
+        /* ディレイ時間が変更されたときに再描画して即座に反映させる関数 */
+        function onDelayChange() {
+            applyFilters();
         }
 
         function sortStudents(students, sortMode) {
@@ -1267,6 +1275,9 @@
         function generateStudentCardsHtml(task, taskKey) {
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
+
+            // セレクトボックスから選択されているディレイ時間の倍率を取得（未選択時は0.7秒をデフォルトとする）
+            const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.7);
 
             let html = '';
 
@@ -1334,8 +1345,8 @@
                 }
                 let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nよみ: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
-                /* ★ 1枚ごとに0.7秒ずつの時間差（ディレイ）に設定 */
-                const animationDelay = (stIdx * 0.7).toFixed(2);
+                // 選択されたディレイ時間間隔（delayStep）にインデックスを掛け合わせて計算
+                const animationDelay = (stIdx * delayStep).toFixed(2);
 
                 html += '<div class="' + cardClass + '" style="animation-delay: ' + animationDelay + 's;">';
                 html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
