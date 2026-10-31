@@ -356,22 +356,23 @@
       letter-spacing: 0.02em;
     }
 
+    /* 提出状況バッジの色をより濃く調整 */
     .status-submitted {
-      background-color: #dcfce7;
-      color: #166534;
-      box-shadow: 0 2px 5px rgba(22, 101, 52, 0.1);
+      background-color: #059669; /* より濃い緑色に変更 */
+      color: #ffffff;
+      box-shadow: 0 2px 5px rgba(5, 150, 105, 0.2);
     }
 
     .status-unsubmitted {
-      background-color: #fee2e2;
-      color: #991b1b;
-      box-shadow: 0 2px 5px rgba(153, 27, 27, 0.1);
+      background-color: #dc2626; /* より濃い赤色に変更 */
+      color: #ffffff;
+      box-shadow: 0 2px 5px rgba(220, 38, 38, 0.2);
     }
 
     .status-invalid {
-      background-color: #fef3c7;
-      color: #b45309;
-      box-shadow: 0 2px 5px rgba(180, 83, 9, 0.1);
+      background-color: #d97706; /* より濃いオレンジ/黄色系に変更 */
+      color: #ffffff;
+      box-shadow: 0 2px 5px rgba(217, 119, 6, 0.2);
     }
 
     .req-badge-required {
@@ -560,7 +561,6 @@
     document.addEventListener('DOMContentLoaded', function() {
       const keywordInput = document.getElementById('keyword');
       
-      // 保存されたキーワードを復元し、存在すれば自動で検索を実行する
       const savedKeyword = localStorage.getItem(STORAGE_KEY);
       if (savedKeyword && keywordInput) {
         keywordInput.value = savedKeyword;
@@ -617,10 +617,8 @@
         return;
       }
 
-      // 検索時にキーワードをローカルストレージに保存
       localStorage.setItem(STORAGE_KEY, rawKeyword);
 
-      // ★半角・全角スペースに加えて、見えない異体字セレクタや結合文字も完全に除去する
       const keyword = rawKeyword
         .replace(/[\s ]+/g, '')
         .replace(/[\uFE00-\uFE0F]/g, '')
