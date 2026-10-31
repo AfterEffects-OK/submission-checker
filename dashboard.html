@@ -1524,7 +1524,7 @@
 
                 html += '<div class="mobile-progress-row">';
                 html += '<div class="mobile-progress-text">提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</div>';
-                html += '<div class="mobile-progress-bar-container"><div style="background: var(--primary); height: 100%; width: ' + percentage + '%;"></div></div>';
+                html += '<div class="mobile-progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
                 html += '</div>';
 
                 html += '<button class="mobile-toggle-btn" onclick="toggleMobileDetail(\'' + escapeHtml(taskKey) + '\')">' + btnText + '</button>';
@@ -1539,7 +1539,8 @@
 
             container.innerHTML = html;
             setTimeout(adjustCardNames, 10);
-        }
+            animateProgressBars(); // ← ここにも追加する
+          }
 
         function animateProgressBars() {
               // すべてのプログレスバーの幅を、データ属性などに持たせたパーセンテージ値に向かってアニメーションさせる
