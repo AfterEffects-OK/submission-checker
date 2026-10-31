@@ -996,91 +996,8 @@
                 });
         }
 
-        // --- 個別タスクリロード関数 ---
-        function reloadTask(lecture, kadaiName, btnElement) {
-            if (btnElement.classList.contains('loading')) return;
-            btnElement.classList.add('loading');
-
-            fetch(GAS_URL + '?mode=dashboard')
-                .then(response => response.json())
-                .then(data => {
-                    btnElement.classList.remove('loading');
-                    if (!data || data.length === 0) return;
-
-                    const taskMap = {};
-                    data.forEach(r => {
-                        const lectureVal = r.submitDate || 'その他';
-                        const kadaiVal = r.kadaiName || 'その他';
-                        const key = lectureVal + '_' + kadaiVal;
-
-                        if (!taskMap[key]) {
-                            taskMap[key] = {
-                                lecture: lectureVal,
-                                kadaiName: kadaiVal,
-                                deadline: r.deadline || '-',
-                                requirement: r.requirement || '-',
-                                folderId: r.folderId || '',
-                                totalCount: 0,
-                                submittedCount: 0,
-                                studentsMap: {}
-                            };
-                        }
-
-                        const studentName = r.studentName;
-                        if (!taskMap[key].studentsMap[studentName]) {
-                            taskMap[key].studentsMap[studentName] = {
-                                name: studentName,
-                                ruby: r.studentRuby || '',
-                                status: r.isSubmitted,
-                                isSubmitted: false,
-                                submitDateStr: r.submitDateStr || '-',
-                                fileNames: []
-                            };
-                        }
-
-                        const stObj = taskMap[key].studentsMap[studentName];
-                        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
-                        if (isOriginalSubmitted) {
-                            stObj.isSubmitted = true;
-                        }
-                        if (r.status === '評価不能' || r.status === '判定不能') {
-                            stObj.status = r.status;
-                        }
-                        if (r.submitDateStr && r.submitDateStr !== '-') {
-                            stObj.submitDateStr = r.submitDateStr;
-                        }
-                        if (r.studentRuby) {
-                            stObj.ruby = r.studentRuby;
-                        }
-
-                        if (r.fileName && r.fileName !== '-') {
-                            if (!stObj.fileNames.includes(r.fileName)) {
-                                stObj.fileNames.push(r.fileName);
-                            }
-                        }
-                    });
-
-                    Object.values(taskMap).forEach(task => {
-                        task.students = Object.values(task.studentsMap);
-                        task.totalCount = task.students.length;
-                        task.submittedCount = task.students.filter(st => st.isSubmitted).length;
-                    });
-
-                    allTasksData = Object.values(taskMap);
-                    applyFilters();
-                })
-                .catch(error => {
-                    btnElement.classList.remove('loading');
-                    console.error('個別リロードエラー:', error);
-                });
-        }
-
-        function processData(results) {
-            if (!results || results.length === 0) {
-                document.getElementById('loading').innerHTML = 'データが見つかりませんでした。';
-                return;
-            }
-
+        // --- 共通のデータパース・集約処理関数（複数ファイルや重複行を正しくまとめる） ---
+        function parseTaskData(results) {
             const taskMap = {};
             results.forEach(r => {
                 const lectureVal = r.submitDate || 'その他';
@@ -1127,10 +1044,15 @@
                     stObj.ruby = r.studentRuby;
                 }
 
+                // 複数ファイルのファイル名を漏れなく配列に蓄積
                 if (r.fileName && r.fileName !== '-') {
-                    if (!stObj.fileNames.includes(r.fileName)) {
-                        stObj.fileNames.push(r.fileName);
-                    }
+                    // カンマ区切りなどで複数入っている場合にも対応できるよう分割して格納
+                    const files = String(r.fileName).split(/[,、\n]/).map(f => f.trim()).filter(f => f.length > 0 && f !== '-');
+                    files.forEach(f => {
+                        if (!stObj.fileNames.includes(f)) {
+                            stObj.fileNames.push(f);
+                        }
+                    });
                 }
             });
 
@@ -1140,8 +1062,36 @@
                 task.submittedCount = task.students.filter(st => st.isSubmitted).length;
             });
 
-            allTasksData = Object.values(taskMap);
+            return Object.values(taskMap);
+        }
 
+        // --- 個別タスクリロード関数 ---
+        function reloadTask(lecture, kadaiName, btnElement) {
+            if (btnElement.classList.contains('loading')) return;
+            btnElement.classList.add('loading');
+
+            fetch(GAS_URL + '?mode=dashboard')
+                .then(response => response.json())
+                .then(data => {
+                    btnElement.classList.remove('loading');
+                    if (!data || data.length === 0) return;
+
+                    allTasksData = parseTaskData(data);
+                    applyFilters();
+                })
+                .catch(error => {
+                    btnElement.classList.remove('loading');
+                    console.error('個別リロードエラー:', error);
+                });
+        }
+
+        function processData(results) {
+            if (!results || results.length === 0) {
+                document.getElementById('loading').innerHTML = 'データが見つかりませんでした。';
+                return;
+            }
+
+            allTasksData = parseTaskData(results);
             updateDropdowns(allTasksData);
             applyFilters();
         }
@@ -1411,8 +1361,7 @@
 
                 let fileDisplay = 'なし';
                 if (st.fileNames && st.fileNames.length > 0) {
-                    fileDisplay = st.fileNames.join('\n・');
-                    fileDisplay = '\n・' + fileDisplay;
+                    fileDisplay = '\n・' + st.fileNames.join('\n・');
                 }
                 let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nふりがな: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
