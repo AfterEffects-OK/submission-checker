@@ -1046,7 +1046,6 @@
 
                 // 複数ファイルのファイル名を漏れなく配列に蓄積
                 if (r.fileName && r.fileName !== '-') {
-                    // カンマ区切りなどで複数入っている場合にも対応できるよう分割して格納
                     const files = String(r.fileName).split(/[,、\n]/).map(f => f.trim()).filter(f => f.length > 0 && f !== '-');
                     files.forEach(f => {
                         if (!stObj.fileNames.includes(f)) {
@@ -1363,7 +1362,8 @@
                 if (st.fileNames && st.fileNames.length > 0) {
                     fileDisplay = '\n・' + st.fileNames.join('\n・');
                 }
-                let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nふりがな: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
+                // 「ふりがな：」を「よみ：」に変更
+                let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nよみ: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                 html += '<div class="' + cardClass + '">';
                 html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
