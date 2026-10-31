@@ -633,10 +633,10 @@
             margin-right: 8px;
         }
         .progress-bar-fill {
-          background: var(--primary); 
-          height: 100%; 
-          width: 0%; /* 初期幅 */
-          transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
+            background: var(--primary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
         }
 
         #loading {
@@ -1465,9 +1465,8 @@
                 html += '<span class="total-num">' + task.totalCount + '人</span>';
                 html += '</td>';
 
-                // ★ style="width: 0%;" を付与してアニメーションの基準点を作成
                 html += '<td style="text-align: center;">';
-                html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
+                html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: ' + percentage + '%;"></div></div>';
                 html += '<span style="font-weight: 700; font-size: 14px;">' + percentage + '%</span>';
                 html += '</td>';
                 html += '</tr>';
@@ -1486,7 +1485,6 @@
             tbody.innerHTML = html;
             document.getElementById('dashboard-table').style.display = 'table';
             setTimeout(adjustCardNames, 10);
-            animateProgressBars(); // ← アニメーションを実行
         }
 
         // --- スマホ用カードビューのレンダリング ---
@@ -1523,10 +1521,9 @@
                 }
                 html += '</div>';
 
-                // ★ こちらも style="width: 0%;" を付与
                 html += '<div class="mobile-progress-row">';
                 html += '<div class="mobile-progress-text">提出状況: <strong class="submitted-num">' + task.submittedCount + '</strong> / ' + task.totalCount + '人 (' + percentage + '%)</div>';
-                html += '<div class="mobile-progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
+                html += '<div class="mobile-progress-bar-container"><div style="background: var(--primary); height: 100%; width: ' + percentage + '%;"></div></div>';
                 html += '</div>';
 
                 html += '<button class="mobile-toggle-btn" onclick="toggleMobileDetail(\'' + escapeHtml(taskKey) + '\')">' + btnText + '</button>';
@@ -1541,29 +1538,18 @@
 
             container.innerHTML = html;
             setTimeout(adjustCardNames, 10);
-            animateProgressBars(); // ← ここにも追加する
-          }
+        }
 
-        function animateProgressBars() {
-          // 少しだけ遅延（50ms）させることで、ブラウザのDOM構築・レンダリングが確実に完了した後にアニメーションを発火させる
-          setTimeout(() => {
-            const bars = document.querySelectorAll('.progress-bar-fill');
-            bars.forEach(bar => {
-              // 一度 0% にリセット
-              bar.style.width = '0%';
+        function adjustCardNames() {
+            document.querySelectorAll('.student-card-name').forEach(el => {
+                const parent = el.parentElement;
+                if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
+                    const scale = parent.clientWidth / el.scrollWidth;
+                    el.style.transform = `scaleX(${scale})`;
+                } else {
+                    el.style.transform = 'scaleX(1)';
+                }
             });
-        
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                bars.forEach(bar => {
-                  const targetWidth = bar.getAttribute('data-percentage');
-                  if (targetWidth) {
-                    bar.style.width = targetWidth + '%';
-                  }
-                });
-              });
-            });
-          }, 50);
         }
 
         function toggleDetail(rowId, mainRowId, taskKey) {
