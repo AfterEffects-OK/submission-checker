@@ -13,6 +13,7 @@
             --card-bg: #ffffff;
             --text-main: #0f172a;
             --text-muted: #64748b;
+            --btn-text: #334155; /* 上部ボタンの少し暗めのテキスト色 */
             --border-color: #e2e8f0;
             --radius: 16px;
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
@@ -29,6 +30,7 @@
             --card-bg: #1e293b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --btn-text: #cbd5e1; /* ダークモード時の上部ボタンのテキスト色 */
             --border-color: #334155;
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             --filter-bg: #0f172a;
@@ -95,7 +97,7 @@
         .control-btn {
             background: var(--filter-bg);
             border: 1px solid var(--border-color);
-            color: var(--text-main);
+            color: var(--btn-text);
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 13px;
@@ -104,7 +106,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.2s ease, border-color 0.2s ease;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
         .control-btn:hover {
             border-color: var(--primary);
@@ -122,11 +124,11 @@
             border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
-            color: var(--text-main);
+            color: var(--btn-text);
         }
         .delay-select-group select {
             background: var(--card-bg);
-            color: var(--text-main);
+            color: var(--btn-text);
             border: 1px solid var(--border-color);
             padding: 4px 8px;
             border-radius: 6px;
@@ -142,7 +144,7 @@
         .theme-toggle-btn {
             background: var(--filter-bg);
             border: 1px solid var(--border-color);
-            color: var(--text-main);
+            color: var(--btn-text);
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 13px;
@@ -151,10 +153,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: background 0.2s ease, border-color 0.2s ease;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
         .theme-toggle-btn:hover {
             border-color: var(--primary);
+            color: var(--primary);
         }
         .theme-toggle-btn svg {
             width: 18px;
