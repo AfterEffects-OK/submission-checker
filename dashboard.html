@@ -324,6 +324,36 @@
             animation: spin 0.8s linear infinite;
         }
 
+        /* アニメーション再生・一時停止ボタン */
+        .anim-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--filter-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        .anim-toggle-btn:hover {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .anim-toggle-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
         .folder-link-btn {
             display: inline-flex;
             align-items: center;
@@ -431,6 +461,13 @@
             animation: dropDownCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
             transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
+        }
+
+        /* アニメーション停止中の状態 */
+        .student-card.anim-paused {
+            animation-play-state: paused !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
         }
 
         .student-card.has-multiple::before,
@@ -853,15 +890,14 @@
             </div>
             
             <div class="controls-bar">
-                <!-- ラベルを「ディレイ:」に変更 -->
                 <div class="delay-select-group">
                     <label for="delay-select">ディレイ:</label>
                     <select id="delay-select" onchange="onDelayChange()">
                         <option value="0.01">高速 (0.01秒)</option>
                         <option value="0.03">標準 (0.03秒)</option>
                         <option value="0.1">ややゆっくり (0.1秒)</option>
-                        <option value="0.3">ゆっくり (0.3秒)</option>
-                        <option value="0.7" selected>超ゆっくり (0.7秒)</option>
+                        <option value="0.3" selected>ゆっくり (0.3秒)</option>
+                        <option value="0.7">超ゆっくり (0.7秒)</option>
                     </select>
                 </div>
 
@@ -1001,6 +1037,7 @@
         let currentSortDirection = 'asc';
         let expandedRowKeys = new Set();
         let studentSortPreferences = {};
+        let animationStates = {}; // 課題ごとのアニメーション再生状態管理 (true: 一時停止中, false: 再生中)
 
         window.addEventListener('DOMContentLoaded', function() {
             loadAllData();
@@ -1223,6 +1260,33 @@
             applyFilters();
         }
 
+        // アニメーションの再生・一時停止を切り替える関数
+        function toggleAnimationState(taskKey, btnElement) {
+            const isPaused = animationStates[taskKey] || false;
+            animationStates[taskKey] = !isPaused;
+
+            const grid = document.getElementById('student-grid-' + taskKey);
+            if (!grid) return;
+
+            const cards = grid.querySelectorAll('.student-card');
+            if (animationStates[taskKey]) {
+                // 一時停止
+                cards.forEach(card => card.classList.add('anim-paused'));
+                btnElement.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 再生';
+                btnElement.title = 'アニメーションを再開';
+            } else {
+                // 再生（クラスを外してアニメーションを再トリガー）
+                cards.forEach(card => {
+                    card.classList.remove('anim-paused');
+                    card.style.animation = 'none';
+                    card.offsetHeight; // reflow trigger
+                    card.style.animation = '';
+                });
+                btnElement.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> 一時停止';
+                btnElement.title = 'アニメーションを一時停止';
+            }
+        }
+
         function sortStudents(students, sortMode) {
             const sorted = [...students];
             if (sortMode === 'status_asc') {
@@ -1275,7 +1339,8 @@
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
 
-            const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.7);
+            const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.3);
+            const isPaused = animationStates[taskKey] || false;
 
             let html = '';
 
@@ -1288,6 +1353,22 @@
             html += '<svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>';
             html += '再取得';
             html += '</button>';
+
+            // ディレイが「ややゆっくり(0.1)」「ゆっくり(0.3)」「超ゆっくり(0.7)」などの場合にアニメーション再生/一時停止ボタンを表示
+            if (delayStep >= 0.1) {
+                if (isPaused) {
+                    html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを再開">';
+                    html += '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+                    html += '再生';
+                    html += '</button>';
+                } else {
+                    html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを一時停止">';
+                    html += '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+                    html += '一時停止';
+                    html += '</button>';
+                }
+            }
+
             html += '</div>';
 
             html += '<div class="student-header-right">';
@@ -1313,7 +1394,7 @@
 
             html += '</div>';
 
-            html += '<div class="student-cards-grid">';
+            html += '<div class="student-cards-grid" id="student-grid-' + escapeHtml(taskKey) + '">';
             const sortedStudents = sortStudents(task.students, currentSortMode);
 
             sortedStudents.forEach((st, stIdx) => {
@@ -1335,6 +1416,10 @@
 
                 if (stIdx < 6) {
                     cardClass += ' tooltip-down';
+                }
+
+                if (isPaused) {
+                    cardClass += ' anim-paused';
                 }
 
                 let fileDisplay = 'なし';
