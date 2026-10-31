@@ -458,12 +458,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            animation: dropDownCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.2s ease;
+            opacity: 0; /* 初期状態は非表示（アニメーション開始前） */
         }
 
-        /* アニメーション停止中の状態 */
+        /* アニメーション再生中のクラス */
+        .student-card.anim-playing {
+            animation: dropDownCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* 一時停止中の状態 */
         .student-card.anim-paused {
             animation-play-state: paused !important;
             opacity: 1 !important;
@@ -1037,7 +1040,7 @@
         let currentSortDirection = 'asc';
         let expandedRowKeys = new Set();
         let studentSortPreferences = {};
-        let animationStates = {}; // 課題ごとのアニメーション再生状態管理 (true: 一時停止中, false: 再生中)
+        let animationStates = {}; // 課題ごとのアニメーション状態管理 ('playing', 'paused', 'stopped')
 
         window.addEventListener('DOMContentLoaded', function() {
             loadAllData();
@@ -1262,25 +1265,30 @@
 
         // アニメーションの再生・一時停止を切り替える関数
         function toggleAnimationState(taskKey, btnElement) {
-            const isPaused = animationStates[taskKey] || false;
-            animationStates[taskKey] = !isPaused;
-
+            const currentState = animationStates[taskKey] || 'stopped';
             const grid = document.getElementById('student-grid-' + taskKey);
             if (!grid) return;
 
             const cards = grid.querySelectorAll('.student-card');
-            if (animationStates[taskKey]) {
-                // 一時停止
+
+            if (currentState === 'playing') {
+                // 再生中 -> 一時停止
+                animationStates[taskKey] = 'paused';
                 cards.forEach(card => card.classList.add('anim-paused'));
                 btnElement.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 再生';
                 btnElement.title = 'アニメーションを再開';
+            } else if (currentState === 'paused') {
+                // 一時停止中 -> 再開
+                animationStates[taskKey] = 'playing';
+                cards.forEach(card => card.classList.remove('anim-paused'));
+                btnElement.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> 一時停止';
+                btnElement.title = 'アニメーションを一時停止';
             } else {
-                // 再生（クラスを外してアニメーションを再トリガー）
+                // 停止（初期）状態 -> 再生開始（ディレイ付きで最初から再生）
+                animationStates[taskKey] = 'playing';
                 cards.forEach(card => {
                     card.classList.remove('anim-paused');
-                    card.style.animation = 'none';
-                    card.offsetHeight; // reflow trigger
-                    card.style.animation = '';
+                    card.classList.add('anim-playing');
                 });
                 btnElement.innerHTML = '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> 一時停止';
                 btnElement.title = 'アニメーションを一時停止';
@@ -1340,7 +1348,7 @@
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
 
             const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.3);
-            const isPaused = animationStates[taskKey] || false;
+            const animState = animationStates[taskKey] || 'stopped';
 
             let html = '';
 
@@ -1354,17 +1362,22 @@
             html += '再取得';
             html += '</button>';
 
-            // ディレイが「ややゆっくり(0.1)」「ゆっくり(0.3)」「超ゆっくり(0.7)」などの場合にアニメーション再生/一時停止ボタンを表示
+            // ディレイが「ややゆっくり(0.1)」以上の場合にアニメーション再生/一時停止ボタンを表示
             if (delayStep >= 0.1) {
-                if (isPaused) {
+                if (animState === 'playing') {
+                    html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを一時停止">';
+                    html += '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+                    html += '一時停止';
+                    html += '</button>';
+                } else if (animState === 'paused') {
                     html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを再開">';
                     html += '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
                     html += '再生';
                     html += '</button>';
                 } else {
-                    html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを一時停止">';
-                    html += '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
-                    html += '一時停止';
+                    html += '<button class="anim-toggle-btn" onclick="event.stopPropagation(); toggleAnimationState(\'' + escapeHtml(taskKey) + '\', this);" title="アニメーションを再生">';
+                    html += '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+                    html += '再生';
                     html += '</button>';
                 }
             }
@@ -1418,7 +1431,9 @@
                     cardClass += ' tooltip-down';
                 }
 
-                if (isPaused) {
+                if (animState === 'playing') {
+                    cardClass += ' anim-playing';
+                } else if (animState === 'paused') {
                     cardClass += ' anim-paused';
                 }
 
