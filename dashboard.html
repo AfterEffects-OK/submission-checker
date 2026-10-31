@@ -636,6 +636,7 @@
             background: var(--primary);
             height: 100%;
             width: 0%; /* 初期状態は0%からスタート */
+            border-right: 1px solid rgba(0, 0, 0, 0.15); /* 棒グラフのエッジ（枠線）を追加 */
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); /* スムーズな伸びるアニメーション */
         }
 
@@ -1362,7 +1363,6 @@
                 if (st.fileNames && st.fileNames.length > 0) {
                     fileDisplay = '\n・' + st.fileNames.join('\n・');
                 }
-                // 「ふりがな：」を「よみ：」に変更
                 let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nよみ: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                 html += '<div class="' + cardClass + '">';
