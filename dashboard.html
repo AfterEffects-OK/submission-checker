@@ -633,10 +633,10 @@
             margin-right: 8px;
         }
         .progress-bar-fill {
-            background: var(--primary);
-            height: 100%;
-            width: 0%;
-            transition: width 0.4s ease;
+          background: var(--primary); 
+          height: 100%; 
+          width: 0%; /* 初期値は0%にしておき、描画後にJSで目標幅にセットしてアニメーションさせる */
+          transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
         #loading {
@@ -1466,7 +1466,7 @@
                 html += '</td>';
 
                 html += '<td style="text-align: center;">';
-                html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: ' + percentage + '%;"></div></div>';
+                html += '<div class="progress-bar-container"><div class="progress-bar-fill" style="width: 0%;" data-percentage="' + percentage + '"></div></div>';
                 html += '<span style="font-weight: 700; font-size: 14px;">' + percentage + '%</span>';
                 html += '</td>';
                 html += '</tr>';
@@ -1485,6 +1485,7 @@
             tbody.innerHTML = html;
             document.getElementById('dashboard-table').style.display = 'table';
             setTimeout(adjustCardNames, 10);
+            animateProgressBars(); // ← アニメーションを実行
         }
 
         // --- スマホ用カードビューのレンダリング ---
@@ -1540,17 +1541,17 @@
             setTimeout(adjustCardNames, 10);
         }
 
-        function adjustCardNames() {
-            document.querySelectorAll('.student-card-name').forEach(el => {
-                const parent = el.parentElement;
-                if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
-                    const scale = parent.clientWidth / el.scrollWidth;
-                    el.style.transform = `scaleX(${scale})`;
-                } else {
-                    el.style.transform = 'scaleX(1)';
-                }
-            });
-        }
+        function animateProgressBars() {
+              // すべてのプログレスバーの幅を、データ属性などに持たせたパーセンテージ値に向かってアニメーションさせる
+              setTimeout(() => {
+                document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+                  const targetWidth = bar.getAttribute('data-percentage');
+                  if (targetWidth) {
+                    bar.style.width = targetWidth + '%';
+                  }
+                });
+              }, 50);
+            }
 
         function toggleDetail(rowId, mainRowId, taskKey) {
             const detailRow = document.getElementById(rowId);
