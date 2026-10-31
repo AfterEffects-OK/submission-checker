@@ -541,6 +541,7 @@
   <script>
     let allResults = [];
     let currentFilter = getDefaultTerm();
+    const STORAGE_KEY = 'saved_search_keyword';
 
     function getDefaultTerm() {
       const month = new Date().getMonth() + 1;
@@ -558,6 +559,14 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       const keywordInput = document.getElementById('keyword');
+      
+      // 保存されたキーワードを復元し、存在すれば自動で検索を実行する
+      const savedKeyword = localStorage.getItem(STORAGE_KEY);
+      if (savedKeyword && keywordInput) {
+        keywordInput.value = savedKeyword;
+        performSearch();
+      }
+
       if (keywordInput) {
         keywordInput.addEventListener('keypress', function(e) {
           if (e.key === 'Enter') {
@@ -607,6 +616,9 @@
         alert('検索キーワードを入力してください。');
         return;
       }
+
+      // 検索時にキーワードをローカルストレージに保存
+      localStorage.setItem(STORAGE_KEY, rawKeyword);
 
       // ★半角・全角スペースに加えて、見えない異体字セレクタや結合文字も完全に除去する
       const keyword = rawKeyword
