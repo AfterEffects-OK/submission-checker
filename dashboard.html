@@ -1000,7 +1000,9 @@
                         <th class="sortable" onclick="sortTable('lecture')">科目名 <span id="sort-icon-lecture"></span></th>
                         <th>課題タイトル</th>
                         <th class="sortable" onclick="sortTable('deadline')">提出期限 <span id="sort-icon-deadline"></span></th>
-                        <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement">▲</span></th>
+                        <th class="sortable" onclick="sortTable('deadline')">提出期限 <span id="sort-icon-deadline">▼</span></th>
+                        <!-- 区分側の ▲ は削除または移動します -->
+                        <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement"></span></th>
                         <th class="sortable" style="text-align: center;" onclick="sortTable('status')">提出状況 (提出数 / 対象者数) <span id="sort-icon-status"></span></th>
                         <th class="sortable" style="text-align: center;" onclick="sortTable('rate')">提出率 <span id="sort-icon-rate"></span></th>
                     </tr>
@@ -1124,8 +1126,8 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
-        let currentSortColumn = 'requirement';
-        let currentSortDirection = 'asc';
+        let currentSortColumn = 'deadline';        // 初期ソート列を 'deadline' (提出期限) に変更
+        let currentSortDirection = 'desc';         // 初期ソート方向を 'desc' (降順) に変更
         let expandedRowKeys = new Set();
         let studentSortPreferences = {};
 
