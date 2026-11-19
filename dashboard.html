@@ -1190,30 +1190,49 @@
 
         // 前回のデータ文字列を保持する変数
         let lastDataJson = '';
+        // 課題ごとに前回データの文字列表現を保持するMap
+        let prevTaskSignatures = new Map();
+        // 今回の自動更新で変更があった課題キーを保持するSet（通常描画時はnullで全件対象）
+        let changedTaskKeysForAnim = null;
         
-        // バックグラウンドでのデータサイレント更新（差分チェック付き）
+        function getTaskSignature(task) {
+            // 課題のメタ情報と全学生の提出状態・提出日時・ファイル一覧をシリアライズ
+            const studentsSig = [...task.students]
+                .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+                .map(s => `${s.name}|${s.isSubmitted}|${s.status}|${s.submitDateStr}|${(s.fileNames || []).join(',')}`)
+                .join(';;');
+            return `${task.lecture}||${task.kadaiName}||${task.deadline}||${task.requirement}||${task.submittedCount}/${task.totalCount}||${studentsSig}`;
+        }
+        
         function silentReloadData() {
             fetch(GAS_URL + '?mode=dashboard')
                 .then(response => response.json())
                 .then(data => {
                     if (!data || data.length === 0) return;
-                    
-                    // 取得したデータをJSON文字列に変換して前回と比較
+        
                     const currentDataJson = JSON.stringify(data);
                     if (currentDataJson === lastDataJson) {
-                        // 変更がない場合は画面更新を完全スキップ
-                        console.log('データの変更なし：画面更新をスキップしました');
                         return;
                     }
-                    
-                    // 変更がある場合のみ、前回データを更新して描画処理を実行
                     lastDataJson = currentDataJson;
-                    const newTasksData = parseTaskData(data);
         
-                    // 氏名順ソート時に未提出→提出済みに変わった学生を検出し、5秒間ハイライトする対象を記録
+                    const newTasksData = parseTaskData(data);
+                    const changedKeys = new Set();
                     const newlySubmittedMap = {};
+        
+                    // 初回で prevTaskSignatures が空の場合は全課題を基準化
+                    const isFirstBaseline = prevTaskSignatures.size === 0;
+        
                     newTasksData.forEach(newTask => {
                         const taskKey = newTask.lecture + '_' + newTask.kadaiName;
+                        const newSig = getTaskSignature(newTask);
+                        const oldSig = prevTaskSignatures.get(taskKey);
+        
+                        if (isFirstBaseline || oldSig !== newSig) {
+                            changedKeys.add(taskKey);
+                        }
+                        prevTaskSignatures.set(taskKey, newSig);
+        
                         const oldTask = allTasksData.find(t => t.lecture === newTask.lecture && t.kadaiName === newTask.kadaiName);
                         if (oldTask) {
                             newlySubmittedMap[taskKey] = new Set();
@@ -1226,11 +1245,20 @@
                         }
                     });
         
+                    // 変更があった課題が1つもない場合はスキップ
+                    if (!isFirstBaseline && changedKeys.size === 0) {
+                        return;
+                    }
+        
                     allTasksData = newTasksData;
                     updateDropdowns(allTasksData);
-                    applyFilters();
         
-                    // 氏名順のカードに対してハイライトクラスを付与
+                    // 今回の描画では changedKeys に含まれる課題だけ anim-playing を付与
+                    changedTaskKeysForAnim = isFirstBaseline ? null : changedKeys;
+                    applyFilters();
+                    changedTaskKeysForAnim = null;
+        
+                    // 氏名順ソート時の新規提出ハイライト（5秒）
                     Object.keys(newlySubmittedMap).forEach(taskKey => {
                         const currentSortMode = studentSortPreferences[taskKey] || 'name';
                         if (currentSortMode === 'name') {
@@ -1523,7 +1551,10 @@
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
             const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.3);
-
+            // changedTaskKeysForAnim が null（手動操作・初回描画など）なら全カード再生
+            // Set が指定されている場合は、その taskKey が含まれる課題だけ再生し、他は即表示（opacity: 1）
+            const shouldPlayAnim = (changedTaskKeysForAnim === null) || changedTaskKeysForAnim.has(taskKey);
+                        
             let html = '';
 
             html += '<div class="student-controls-bar">';
@@ -1565,14 +1596,14 @@
             const sortedStudents = sortStudents(task.students, currentSortMode);
 
             sortedStudents.forEach((st, stIdx) => {
-                let cardClass = 'student-card unsubmitted anim-playing';
+                let cardClass = 'student-card unsubmitted';
                 let badge = '<span class="badge-unsubmitted">未提出</span>';
 
                 if (st.status === '評価不能' || st.status === '判定不能') {
-                    cardClass = 'student-card unknown anim-playing';
+                    cardClass = 'student-card unknown';
                     badge = '<span class="badge-unknown">評価不能</span>';
                 } else if (st.isSubmitted) {
-                    cardClass = 'student-card submitted anim-playing';
+                    cardClass = 'student-card submitted';
                     badge = '<span class="badge-submitted">提出済み</span>';
                 }
 
@@ -1592,8 +1623,12 @@
                 let tooltipHtml = '学生名: ' + escapeHtml(st.name) + '\nよみ: ' + escapeHtml(st.ruby || '-') + '\n提出確認日: ' + escapeHtml(st.submitDateStr || '-') + '\n提出ファイル: ' + escapeHtml(fileDisplay);
 
                 const animationDelay = (stIdx * delayStep).toFixed(2);
+                const animClass = shouldPlayAnim ? ' anim-playing' : '';
+                const inlineStyle = shouldPlayAnim
+                    ? `animation-delay: ${animationDelay}s;`
+                    : 'opacity: 1;';
 
-                html += '<div class="' + cardClass + '" style="animation-delay: ' + animationDelay + 's;">';
+                html += '<div class="' + cardClass + animClass + '" style="' + inlineStyle + '">';
                 html += '<div class="card-tooltip">' + tooltipHtml + '</div>';
                 html += '<div class="student-info-wrapper">';
                 if (st.ruby) {
