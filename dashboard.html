@@ -215,7 +215,7 @@
             box-sizing: border-box;
         }
 
-        @media screen and (max-width: 1050px) {
+        @media screen and (max-width: 1150px) {
             .controls-bar > .control-btn,
             .controls-bar > .delay-select-group,
             .controls-bar > .theme-toggle-btn {
@@ -481,6 +481,16 @@
             }
         }
 
+        @keyframes pulseHighlight {
+          0% { background-color: rgba(46, 204, 113, 0.6); }
+          50% { background-color: rgba(46, 204, 113, 0.2); }
+          100% { background-color: transparent; }
+        }
+        
+        .highlight-submitted {
+          animation: pulseHighlight 5s ease;
+        }
+
         .student-card {
             position: relative; 
             border-radius: 8px;
@@ -489,11 +499,10 @@
             justify-content: space-between;
             align-items: center;
             opacity: 0;
-            z-index: 1; /* 通常時の重なり順ベース */
-            transition: z-index 0s ease 0.2s; /* ホバー解除時に遅延してz-indexを戻す */
+            z-index: 1;
+            transition: z-index 0s ease 0.2s;
         }
 
-        /* ★ 修正：ホバー時や複数ファイル持ちの場合にカード自体の z-index を最前面（999）に引き上げる */
         .student-card:hover,
         .student-card.has-multiple:hover {
             z-index: 999 !important;
@@ -550,7 +559,6 @@
             z-index: 10;
         }
 
-        /* ★ 修正：ツールチップの z-index を超高水準 (10000) に設定し、絶対にはみ出し・背後に入り込まないようにする */
         .student-card .card-tooltip {
             visibility: hidden;
             opacity: 0;
@@ -936,6 +944,16 @@
                         <option value="0.7">超ゆっくり (0.7秒)</option>
                     </select>
                 </div>
+                <!-- 自動更新セレクトボックス (PC用) -->
+                <div class="delay-select-group">
+                    <label for="auto-refresh-select">自動更新:</label>
+                    <select id="auto-refresh-select" onchange="onAutoRefreshChange(this.value)">
+                        <option value="0" selected>オフ</option>
+                        <option value="30">30秒ごと</option>
+                        <option value="60">1分ごと</option>
+                        <option value="300">5分ごと</option>
+                    </select>
+                </div>
                 <button id="toggle-header-btn" class="control-btn" onclick="toggleHeader()">
                     <span>タイトルを非表示</span>
                 </button>
@@ -961,6 +979,16 @@
                             <option value="0.1">ややゆっくり (0.1秒)</option>
                             <option value="0.3" selected>ゆっくり (0.3秒)</option>
                             <option value="0.7">超ゆっくり (0.7秒)</option>
+                        </select>
+                    </div>
+                    <!-- 自動更新セレクトボックス (スマホ用) -->
+                    <div class="delay-select-group">
+                        <label for="auto-refresh-select-drop">自動更新:</label>
+                        <select id="auto-refresh-select-drop" onchange="onAutoRefreshChange(this.value)">
+                            <option value="0" selected>オフ</option>
+                            <option value="30">30秒ごと</option>
+                            <option value="60">1分ごと</option>
+                            <option value="300">5分ごと</option>
                         </select>
                     </div>
                     <button id="toggle-header-btn-drop" class="control-btn" type="button" onclick="toggleHeader(); closeHamburgerMenu();">
@@ -1000,7 +1028,6 @@
                         <th class="sortable" onclick="sortTable('lecture')">科目名 <span id="sort-icon-lecture"></span></th>
                         <th>課題タイトル</th>
                         <th class="sortable" onclick="sortTable('deadline')">提出期限 <span id="sort-icon-deadline">▼</span></th>
-                        <!-- 区分側の ▲ は削除または移動します -->
                         <th class="sortable" onclick="sortTable('requirement')">区分 <span id="sort-icon-requirement"></span></th>
                         <th class="sortable" style="text-align: center;" onclick="sortTable('status')">提出状況 (提出数 / 対象者数) <span id="sort-icon-status"></span></th>
                         <th class="sortable" style="text-align: center;" onclick="sortTable('rate')">提出率 <span id="sort-icon-rate"></span></th>
@@ -1125,14 +1152,93 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         let allTasksData = [];
-        let currentSortColumn = 'deadline';        // 初期ソート列を 'deadline' (提出期限) に変更
-        let currentSortDirection = 'desc';         // 初期ソート方向を 'desc' (降順) に変更
+        let currentSortColumn = 'deadline';
+        let currentSortDirection = 'desc';
         let expandedRowKeys = new Set();
         let studentSortPreferences = {};
+        let autoRefreshTimer = null;
 
         window.addEventListener('DOMContentLoaded', function() {
+            const savedInterval = localStorage.getItem('autoRefreshInterval') || '0';
+            onAutoRefreshChange(savedInterval);
             loadAllData();
         });
+
+        // 自動更新設定の変更とタイマー制御
+        function onAutoRefreshChange(secondsStr) {
+            const seconds = parseInt(secondsStr, 10);
+            
+            const mainSelect = document.getElementById('auto-refresh-select');
+            const dropSelect = document.getElementById('auto-refresh-select-drop');
+            if (mainSelect) mainSelect.value = secondsStr;
+            if (dropSelect) dropSelect.value = secondsStr;
+
+            localStorage.setItem('autoRefreshInterval', secondsStr);
+
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+
+            if (seconds > 0) {
+                autoRefreshTimer = setInterval(() => {
+                    silentReloadData();
+                }, seconds * 1000);
+            }
+        }
+
+        // バックグラウンドでのデータサイレント更新
+        function silentReloadData() {
+            fetch(GAS_URL + '?mode=dashboard')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || data.length === 0) return;
+                    
+                    const newTasksData = parseTaskData(data);
+
+                    // 氏名順ソート時に未提出→提出済みに変わった学生を検出し、5秒間ハイライトする対象を記録
+                    const newlySubmittedMap = {};
+                    newTasksData.forEach(newTask => {
+                        const taskKey = newTask.lecture + '_' + newTask.kadaiName;
+                        const oldTask = allTasksData.find(t => t.lecture === newTask.lecture && t.kadaiName === newTask.kadaiName);
+                        if (oldTask) {
+                            newlySubmittedMap[taskKey] = new Set();
+                            newTask.students.forEach(newSt => {
+                                const oldSt = oldTask.students.find(s => s.name === newSt.name);
+                                if (oldSt && !oldSt.isSubmitted && newSt.isSubmitted) {
+                                    newlySubmittedMap[taskKey].add(newSt.name);
+                                }
+                            });
+                        }
+                    });
+
+                    allTasksData = newTasksData;
+                    updateDropdowns(allTasksData);
+                    applyFilters();
+
+                    // 氏名順のカードに対してハイライトクラスを付与
+                    Object.keys(newlySubmittedMap).forEach(taskKey => {
+                        const currentSortMode = studentSortPreferences[taskKey] || 'name';
+                        if (currentSortMode === 'name') {
+                            newlySubmittedMap[taskKey].forEach(studentName => {
+                                const cards = document.querySelectorAll(`#student-grid-${CSS.escape(taskKey)} .student-card`);
+                                cards.forEach(card => {
+                                    const nameEl = card.querySelector('.student-card-name');
+                                    if (nameEl && nameEl.textContent.trim() === studentName) {
+                                        card.classList.add('highlight-submitted');
+                                        setTimeout(() => {
+                                            card.classList.remove('highlight-submitted');
+                                        }, 5000);
+                                    }
+                                });
+                            });
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('自動更新エラー:', error);
+                });
+        }
 
         function loadAllData() {
             fetch(GAS_URL + '?mode=dashboard')
