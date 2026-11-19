@@ -1187,15 +1187,28 @@
             }
         }
 
-        // バックグラウンドでのデータサイレント更新
+        // 前回のデータ文字列を保持する変数
+        let lastDataJson = '';
+        
+        // バックグラウンドでのデータサイレント更新（差分チェック付き）
         function silentReloadData() {
             fetch(GAS_URL + '?mode=dashboard')
                 .then(response => response.json())
                 .then(data => {
                     if (!data || data.length === 0) return;
                     
+                    // 取得したデータをJSON文字列に変換して前回と比較
+                    const currentDataJson = JSON.stringify(data);
+                    if (currentDataJson === lastDataJson) {
+                        // 変更がない場合は画面更新を完全スキップ
+                        console.log('データの変更なし：画面更新をスキップしました');
+                        return;
+                    }
+                    
+                    // 変更がある場合のみ、前回データを更新して描画処理を実行
+                    lastDataJson = currentDataJson;
                     const newTasksData = parseTaskData(data);
-
+        
                     // 氏名順ソート時に未提出→提出済みに変わった学生を検出し、5秒間ハイライトする対象を記録
                     const newlySubmittedMap = {};
                     newTasksData.forEach(newTask => {
@@ -1211,11 +1224,11 @@
                             });
                         }
                     });
-
+        
                     allTasksData = newTasksData;
                     updateDropdowns(allTasksData);
                     applyFilters();
-
+        
                     // 氏名順のカードに対してハイライトクラスを付与
                     Object.keys(newlySubmittedMap).forEach(taskKey => {
                         const currentSortMode = studentSortPreferences[taskKey] || 'name';
