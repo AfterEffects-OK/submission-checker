@@ -646,8 +646,9 @@
             margin-bottom: 2px;
             font-weight: 600;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            overflow: visible; /* 省略（ellipsis）させずにはみ出し可能にする */
+            transform-origin: left center;
+            display: inline-block;
             line-height: 1.2;
         }
 
@@ -1728,7 +1729,19 @@
         }
 
         function adjustCardNames() {
+            // 氏名カードの幅調整
             document.querySelectorAll('.student-card-name').forEach(el => {
+                const parent = el.parentElement;
+                if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
+                    const scale = parent.clientWidth / el.scrollWidth;
+                    el.style.transform = `scaleX(${scale})`;
+                } else {
+                    el.style.transform = 'scaleX(1)';
+                }
+            });
+        
+            // ふりがなの幅調整
+            document.querySelectorAll('.student-card-ruby').forEach(el => {
                 const parent = el.parentElement;
                 if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
                     const scale = parent.clientWidth / el.scrollWidth;
