@@ -678,7 +678,8 @@
       let tableHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
-        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        let isDriveSubmitted = (String(r.driveStatus || '').trim() === 'ファイル提出');
+        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1' || isDriveSubmitted);
         let isSub = isOriginalSubmitted;
         let statusHtml = '';
 
@@ -726,7 +727,8 @@
       let cardHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
-        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        let isDriveSubmitted = (String(r.driveStatus || '').trim() === 'ファイル提出');
+        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1' || isDriveSubmitted);
         let isSub = isOriginalSubmitted;
         let statusHtml = '';
 
