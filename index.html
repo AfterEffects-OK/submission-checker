@@ -684,14 +684,10 @@
         let statusHtml = '';
 
         if (isSub) {
-          if (r.isManualVerified === true) {
-            statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          if (!hasValidVideoExtension(r.fileName)) {
+            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
           } else {
-            if (!hasValidVideoExtension(r.fileName)) {
-              statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
-            } else {
-              statusHtml = '<span class="badge status-submitted">提出済み</span>';
-            }
+            statusHtml = '<span class="badge status-submitted">提出済み</span>';
           }
         } else {
           statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
@@ -733,14 +729,10 @@
         let statusHtml = '';
 
         if (isSub) {
-          if (r.isManualVerified === true) {
-            statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          if (!hasValidVideoExtension(r.fileName)) {
+            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
           } else {
-            if (!hasValidVideoExtension(r.fileName)) {
-              statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
-            } else {
-              statusHtml = '<span class="badge status-submitted">提出済み</span>';
-            }
+            statusHtml = '<span class="badge status-submitted">提出済み</span>';
           }
         } else {
           statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
