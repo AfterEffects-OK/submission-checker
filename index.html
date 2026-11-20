@@ -678,19 +678,16 @@
       let tableHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
-        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        let isDriveSubmitted = (String(r.driveStatus || '').trim() === 'ファイル提出');
+        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1' || isDriveSubmitted);
         let isSub = isOriginalSubmitted;
         let statusHtml = '';
 
         if (isSub) {
-          if (r.isManualVerified === true) {
-            statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          if (!hasValidVideoExtension(r.fileName)) {
+            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
           } else {
-            if (!hasValidVideoExtension(r.fileName)) {
-              statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
-            } else {
-              statusHtml = '<span class="badge status-submitted">提出済み</span>';
-            }
+            statusHtml = '<span class="badge status-submitted">提出済み</span>';
           }
         } else {
           statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
@@ -726,19 +723,16 @@
       let cardHtml = '';
       for (let i = 0; i < filtered.length; i++) {
         let r = filtered[i];
-        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1');
+        let isDriveSubmitted = (String(r.driveStatus || '').trim() === 'ファイル提出');
+        let isOriginalSubmitted = (r.isSubmitted === true || r.isSubmitted === 'TRUE' || r.isSubmitted === 'true' || r.isSubmitted === '1' || isDriveSubmitted);
         let isSub = isOriginalSubmitted;
         let statusHtml = '';
 
         if (isSub) {
-          if (r.isManualVerified === true) {
-            statusHtml = '<span class="badge status-submitted">提出済み</span>';
+          if (!hasValidVideoExtension(r.fileName)) {
+            statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
           } else {
-            if (!hasValidVideoExtension(r.fileName)) {
-              statusHtml = '<span class="badge status-invalid">評価不能ファイル</span>';
-            } else {
-              statusHtml = '<span class="badge status-submitted">提出済み</span>';
-            }
+            statusHtml = '<span class="badge status-submitted">提出済み</span>';
           }
         } else {
           statusHtml = '<span class="badge status-unsubmitted">未提出</span>';
