@@ -1220,9 +1220,7 @@
                 indicator.textContent = '';
                 return;
             }
-            const gakkaLabel = GAKKA_NAME_MAP[targetGakka]
-                ? `${GAKKA_NAME_MAP[targetGakka]} (${targetGakka})`
-                : targetGakka;
+            const gakkaLabel = GAKKA_NAME_MAP[targetGakka] || targetGakka;
             indicator.textContent = `学科フィルター: ${gakkaLabel}`;
             indicator.style.display = 'inline-block';
         }
