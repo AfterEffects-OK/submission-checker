@@ -1175,8 +1175,9 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
         // =========================================================
-        // フロントエンド学科絞り込み設定（?gakka=XXXX）
-        // バックエンドを更新せず、学科IDごとに表示する講義名・科目名を指定します。
+        // 学科絞り込み設定（?gakka=XXXX）
+        // GAS側の deptId（ID課題 → ID科目 → ID学科）を優先使用し、
+        // deptId が空のレコードのみ GAKKA_LECTURE_MAP でフォールバックします。
         // =========================================================
         const GAKKA_NAME_MAP = {
             'f6765d6d': '映像音響学科',
@@ -1230,16 +1231,16 @@
             const targetGakka = getTargetGakkaId();
             if (!targetGakka) return true;
 
+            if (task.gakkaIds && task.gakkaIds.size > 0) {
+                return task.gakkaIds.has(targetGakka);
+            }
+
             const allowedLectures = GAKKA_LECTURE_MAP[targetGakka];
             if (Array.isArray(allowedLectures) && allowedLectures.length > 0) {
                 const normalizedTaskLecture = normalizeLectureName(task.lecture);
                 return allowedLectures.some(
                     lec => normalizeLectureName(lec) === normalizedTaskLecture
                 );
-            }
-
-            if (task.gakkaIds && task.gakkaIds.size > 0) {
-                return task.gakkaIds.has(targetGakka);
             }
 
             return false;
@@ -1468,7 +1469,7 @@
             if (btnElement.classList.contains('loading')) return;
             btnElement.classList.add('loading');
 
-            fetch(GAS_URL + '?mode=dashboard')
+            fetch(GAS_URL + '?mode=dashboard&nocache=1')
                 .then(response => response.json())
                 .then(data => {
                     btnElement.classList.remove('loading');
