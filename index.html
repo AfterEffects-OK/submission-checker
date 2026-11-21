@@ -547,6 +547,23 @@
     let currentFilter = getDefaultTerm();
     const STORAGE_KEY = 'saved_search_keyword';
 
+    function isLocalSaveDisabled() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('nosave')) {
+          const val = String(params.get('nosave') || '').trim().toLowerCase();
+          if (val === '' || val === '1' || val === 'true' || val === 'yes') {
+            return true;
+          }
+        }
+        const hash = String(window.location.hash || '').replace(/^#/, '').trim().toLowerCase();
+        if (hash === 'nosave') {
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
     function getDefaultTerm() {
       const month = new Date().getMonth() + 1;
       return (month >= 4 && month <= 9) ? '前期' : '後期';
@@ -565,11 +582,18 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       const keywordInput = document.getElementById('keyword');
-      
-      const savedKeyword = localStorage.getItem(STORAGE_KEY);
-      if (savedKeyword && keywordInput) {
-        keywordInput.value = savedKeyword;
-        performSearch();
+      const saveDisabled = isLocalSaveDisabled();
+
+      if (saveDisabled) {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
+      } else {
+        const savedKeyword = localStorage.getItem(STORAGE_KEY);
+        if (savedKeyword && keywordInput) {
+          keywordInput.value = savedKeyword;
+          performSearch();
+        }
       }
 
       if (keywordInput) {
@@ -622,7 +646,13 @@
         return;
       }
 
-      localStorage.setItem(STORAGE_KEY, rawKeyword);
+      if (isLocalSaveDisabled()) {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
+      } else {
+        localStorage.setItem(STORAGE_KEY, rawKeyword);
+      }
 
       const keyword = rawKeyword
         .replace(/[\s ]+/g, '')
