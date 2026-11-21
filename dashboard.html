@@ -961,7 +961,6 @@
                         <option value="0.7">超ゆっくり (0.7秒)</option>
                     </select>
                 </div>
-                <!-- 自動更新セレクトボックス (PC用) -->
                 <div class="delay-select-group">
                     <label for="auto-refresh-select">自動更新:</label>
                     <select id="auto-refresh-select" onchange="onAutoRefreshChange(this.value)">
@@ -1002,7 +1001,6 @@
                             <option value="0.7">超ゆっくり (0.7秒)</option>
                         </select>
                     </div>
-                    <!-- 自動更新セレクトボックス (スマホ用) -->
                     <div class="delay-select-group">
                         <label for="auto-refresh-select-drop">自動更新:</label>
                         <select id="auto-refresh-select-drop" onchange="onAutoRefreshChange(this.value)">
@@ -1178,8 +1176,7 @@
 
         // =========================================================
         // フロントエンド学科絞り込み設定（?gakka=XXXX）
-        // APIレスポンスに学科IDが含まれない場合は、必要に応じて
-        // 「学科ID: [対象講義名...]」をここに追記して絞り込めます。
+        // バックエンドを更新せず、学科IDごとに表示する講義名・科目名を指定します。
         // =========================================================
         const GAKKA_NAME_MAP = {
             'f6765d6d': '映像音響学科',
@@ -1187,8 +1184,21 @@
         };
 
         const GAKKA_LECTURE_MAP = {
-            // 例: 'f6765d6d': ['編集Ⅰ', '編集Ⅱ']
+            'f6765d6d': [
+                '映像Ⅰ(前期)',
+                '映像Ⅰ(後期)',
+                '映像Ⅱ(後期)',
+                '音響理論(後期)'
+            ]
         };
+
+        function normalizeLectureName(name) {
+            return String(name || '')
+                .trim()
+                .replace(/\s+/g, '')
+                .replace(/（/g, '(')
+                .replace(/）/g, ')');
+        }
 
         function getTargetGakkaId() {
             const params = new URLSearchParams(window.location.search);
@@ -1220,16 +1230,19 @@
             const targetGakka = getTargetGakkaId();
             if (!targetGakka) return true;
 
+            const allowedLectures = GAKKA_LECTURE_MAP[targetGakka];
+            if (Array.isArray(allowedLectures) && allowedLectures.length > 0) {
+                const normalizedTaskLecture = normalizeLectureName(task.lecture);
+                return allowedLectures.some(
+                    lec => normalizeLectureName(lec) === normalizedTaskLecture
+                );
+            }
+
             if (task.gakkaIds && task.gakkaIds.size > 0) {
                 return task.gakkaIds.has(targetGakka);
             }
 
-            const allowedLectures = GAKKA_LECTURE_MAP[targetGakka];
-            if (Array.isArray(allowedLectures) && allowedLectures.length > 0) {
-                return allowedLectures.includes(task.lecture);
-            }
-
-            return true;
+            return false;
         }
 
         function getGakkaScopedTasks() {
@@ -1250,7 +1263,6 @@
             loadAllData();
         });
 
-        // 自動更新設定の変更とタイマー制御
         function onAutoRefreshChange(secondsStr) {
             const seconds = parseInt(secondsStr, 10);
             
@@ -1273,15 +1285,11 @@
             }
         }
 
-        // 前回のデータ文字列を保持する変数
         let lastDataJson = '';
-        // 課題ごとに前回データの文字列表現を保持するMap
         let prevTaskSignatures = new Map();
-        // 今回の自動更新で変更があった課題キーを保持するSet（通常描画時はnullで全件対象）
         let changedTaskKeysForAnim = null;
         
         function getTaskSignature(task) {
-            // 課題のメタ情報と全学生の提出状態・提出日時・ファイル一覧をシリアライズ
             const studentsSig = [...task.students]
                 .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
                 .map(s => `${s.name}|${s.isSubmitted}|${s.status}|${s.submitDateStr}|${(s.fileNames || []).join(',')}`)
@@ -1305,7 +1313,6 @@
                     const changedKeys = new Set();
                     const newlySubmittedMap = {};
         
-                    // 初回で prevTaskSignatures が空の場合は全課題を基準化
                     const isFirstBaseline = prevTaskSignatures.size === 0;
         
                     newTasksData.forEach(newTask => {
@@ -1330,7 +1337,6 @@
                         }
                     });
         
-                    // 変更があった課題が1つもない場合はスキップ
                     if (!isFirstBaseline && changedKeys.size === 0) {
                         return;
                     }
@@ -1338,12 +1344,10 @@
                     allTasksData = newTasksData;
                     updateDropdowns(allTasksData);
         
-                    // 今回の描画では changedKeys に含まれる課題だけ anim-playing を付与
                     changedTaskKeysForAnim = isFirstBaseline ? null : changedKeys;
                     applyFilters();
                     changedTaskKeysForAnim = null;
         
-                    // 氏名順ソート時の新規提出ハイライト（5秒）
                     Object.keys(newlySubmittedMap).forEach(taskKey => {
                         const currentSortMode = studentSortPreferences[taskKey] || 'name';
                         if (currentSortMode === 'name') {
@@ -1386,7 +1390,7 @@
                 const kadaiVal = r.kadaiName || 'その他';
                 const key = lectureVal + '_' + kadaiVal;
                 const rowGakkaId = String(
-                    r.gakkaId || r.departmentId || r.idGakkaId || r['ID学科'] || ''
+                    r.deptId || r.gakkaId || r.departmentId || r.idGakkaId || r['ID学科'] || ''
                 ).trim();
 
                 if (!taskMap[key]) {
@@ -1906,7 +1910,6 @@
         }
 
         function adjustCardNames() {
-            // 氏名カードの幅調整
             document.querySelectorAll('.student-card-name').forEach(el => {
                 const parent = el.parentElement;
                 if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
@@ -1917,7 +1920,6 @@
                 }
             });
         
-            // ふりがなの幅調整
             document.querySelectorAll('.student-card-ruby').forEach(el => {
                 const parent = el.parentElement;
                 if (el.scrollWidth > parent.clientWidth && parent.clientWidth > 0) {
