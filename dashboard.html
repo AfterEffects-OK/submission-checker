@@ -109,6 +109,39 @@
             flex-wrap: nowrap;
         }
 
+        .help-icon-btn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: 50%;
+            background: var(--filter-bg);
+            border: 1px solid var(--border-color);
+            color: var(--btn-text);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+        }
+        .help-icon-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(5, 150, 105, 0.08);
+        }
+        .help-icon-btn:active {
+            transform: scale(0.95);
+        }
+        .help-icon-btn svg {
+            width: 17px;
+            height: 17px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
         .hamburger-btn {
             display: none;
             background: var(--filter-bg);
@@ -233,12 +266,136 @@
         @media screen and (max-width: 1405px) {
             .controls-bar > .control-btn,
             .controls-bar > .delay-select-group,
-            .controls-bar > .theme-toggle-btn {
+            .controls-bar > .theme-toggle-btn,
+            .controls-bar > .help-icon-btn {
                 display: none !important;
             }
             .hamburger-btn {
                 display: flex !important;
             }
+        }
+
+        /* README ヘルプモーダル */
+        .readme-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(3px);
+            z-index: 20000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .readme-modal-backdrop.active {
+            display: flex;
+        }
+        .readme-modal-dialog {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 820px;
+            max-height: 84vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .readme-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--filter-bg);
+        }
+        .readme-modal-title {
+            font-size: 15px;
+            font-weight: 800;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .readme-modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .readme-modal-close:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .readme-modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+            font-size: 13.5px;
+            line-height: 1.7;
+        }
+        .readme-modal-body h1 {
+            font-size: 20px;
+            margin: 0 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .readme-modal-body h2 {
+            font-size: 16px;
+            margin: 22px 0 10px 0;
+            white-space: normal;
+        }
+        .readme-modal-body h3 {
+            font-size: 14px;
+            margin: 14px 0 6px 0;
+            color: var(--primary);
+        }
+        .readme-modal-body p {
+            margin: 0 0 10px 0;
+            color: var(--text-main);
+        }
+        .readme-modal-body ul, .readme-modal-body ol {
+            margin: 6px 0 12px 0;
+            padding-left: 20px;
+        }
+        .readme-modal-body li {
+            margin-bottom: 5px;
+        }
+        .readme-modal-body code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            padding: 1px 5px;
+            border-radius: 5px;
+            background: rgba(100, 116, 139, 0.15);
+        }
+        .readme-modal-body a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .readme-modal-body a:hover {
+            text-decoration: underline;
+        }
+        .readme-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--filter-bg);
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .filter-section {
@@ -980,6 +1137,13 @@
                 <button id="toggle-filter-btn" class="control-btn" onclick="toggleFilter()">
                     <span>検索・フィルターを非表示</span>
                 </button>
+                <button id="readme-help-btn" class="help-icon-btn" type="button" onclick="openReadmeModal()" title="README・使い方ヘルプ" aria-label="README・使い方ヘルプ">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
 
                 <button id="hamburger-menu-btn" class="hamburger-btn" type="button" onclick="toggleHamburgerMenu(event)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -1019,6 +1183,9 @@
                     </button>
                     <button id="toggle-filter-btn-drop" class="control-btn" type="button" onclick="toggleFilter(); closeHamburgerMenu();">
                         <span>検索・フィルターを非表示</span>
+                    </button>
+                    <button id="readme-help-btn-drop" class="control-btn" type="button" onclick="closeHamburgerMenu(); openReadmeModal();">
+                        <span>? README・使い方</span>
                     </button>
                 </div>
             </div>
@@ -1064,7 +1231,184 @@
         <div id="mobile-cards-container" class="mobile-cards-view"></div>
     </div>
 
+    <!-- README ヘルプモーダル -->
+    <div id="readme-modal" class="readme-modal-backdrop" onclick="handleReadmeBackdropClick(event)" role="dialog" aria-modal="true" aria-labelledby="readme-modal-title">
+        <div class="readme-modal-dialog" onclick="event.stopPropagation()">
+            <div class="readme-modal-header">
+                <h3 id="readme-modal-title" class="readme-modal-title">
+                    <span>?</span>
+                    <span>README・ダッシュボード使い方</span>
+                </h3>
+                <button type="button" class="readme-modal-close" onclick="closeReadmeModal()" aria-label="閉じる">✕</button>
+            </div>
+            <div id="readme-modal-body" class="readme-modal-body"></div>
+            <div class="readme-modal-footer">
+                <span id="readme-source-status">README.md</span>
+                <a id="readme-github-link" href="https://github.com/AfterEffects-OK/submission-checker/blob/%E5%AD%A6%E7%A7%91%E7%B5%9E%E3%82%8A%E8%BE%BC%E3%81%BF/README.md" target="_blank" rel="noopener noreferrer">GitHubで開く ↗</a>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const README_RAW_URL = 'https://raw.githubusercontent.com/AfterEffects-OK/submission-checker/%E5%AD%A6%E7%A7%91%E7%B5%9E%E3%82%8A%E8%BE%BC%E3%81%BF/README.md';
+        const FALLBACK_README_MD = `# 講義管理・ダッシュボードシステム (dashboard.html)
+
+受講学生の提出状況や進捗、各種講義データの一括管理・モニタリングを行うための総合管理画面・ダッシュボードアプリケーションです。
+
+---
+
+## 主な機能
+
+1. **統合ダッシュボードビュー**
+   - 複数講義やクラスにおける課題の提出状況、全体および個別の達成率、未提出者のリストを一目で把握できます。
+   - 「学生」シートの **P列（\`is除籍フラグ\`）** が \`TRUE\` の学生は対象者数・提出率の集計から除外されます。
+   - **表示内容と解説**: 課題ごとの提出状況（\`提出数 / 対象者数\`）や提出率、展開時の学生別カード一覧から除籍学生が除外されます。除籍生を分母に含めないことで、現在の在籍者基準での正確な提出率を把握できます。
+2. **学科フィルター & 高度なフィルタリング・データ集計**
+   - URL クエリパラメータ（\`gakka\` / \`idGakkaId\` / \`id学科\`）を指定することで、対象学科の課題・提出状況に絞り込み表示できます（例: \`?gakka=xxxxxxxx\`）。
+   - 画面上部のフィルターバッジは学科名のみを表示する形式（例: \`学科フィルター: 映像音響学科\`）に整理されています。
+   - **表示内容と解説**: 学科絞り込みが有効なときはヘッダー下に \`学科フィルター: 映像音響学科\` のようなバッジが表示され、対象学科の科目・課題に絞られた一覧が表示されます。内部ID（\`xxxxxxxx\` など）の括弧表記を省いて学科名のみを表示することで、画面上の視認性とスッキリ感を高めています。
+   - 講義名・課題タイトルでの絞り込みや、提出状況順・提出率順などのソート、自動更新・アニメーションディレイ設定に対応しています。
+3. **管理・運用効率化ツール**
+   - 学生別カードの展開表示、個別データの再取得（\`再取得\` ボタン）、各課題の提出フォルダへのクイックアクセス、評価ステータスの確認作業を効率化します。
+4. **ダッシュボードの設定項目と解説**
+   - **ディレイ（\`0.01秒\`〜\`0.7秒\`、既定: \`ゆっくり (0.3秒)\`）**: 課題を展開したときに学生カードが順番に落ちて表示されるアニメーションの時間間隔を設定します。人数が多いクラスや画面共有・録画時は短め、提出の流れを追いやすい確認時は長めなど用途に合わせて調整できます。
+   - **自動更新（\`オフ\` / \`30秒ごと\` / \`1分ごと\` / \`5分ごと\` / \`15分ごと\` / \`30分ごと\` / \`1時間ごと\` / \`12時間ごと\`）**: 定期的にバックエンドから最新データを取得し、変更があった課題や新規提出となった学生カードを自動で更新・ハイライトします（設定は \`localStorage\` に保存）。
+   - **タイトルを非表示 / タイトルを表示**: 画面上部の見出し・サブタイトル・学科フィルターバッジ領域をスムーズに開閉します。投影や省スペース表示で一覧表の縦幅を広く使いたいときに便利です。
+   - **検索・フィルターを非表示 / 検索・フィルターを表示**: 「講義名」「課題タイトル」のプルダウン絞り込みエリアを開閉します。一覧の閲覧や確認に集中したいときに折りたたんで使えます。
+   - **ダークモード / ライトモード**: 画面全体の配色を切り替えられます（\`localStorage\` に保存、未設定時はOS/ブラウザのテーマ設定に追従）。
+   - **並べ替え（学生別カード内: \`氏名順\` / \`提出状況順 (昇順)\` / \`提出状況順 (降順)\`）**: 課題詳細を展開した際の学生カードを並び替えます。\`氏名順\` はふりがな（未設定時は氏名）順、\`提出状況順 (昇順)\` は未提出・評価不能を優先して表示するため、未提出者の拾い出しに役立ちます。
+   - ※ 画面幅が狭いときは、これらの操作項目が \`メニュー\` ボタン内のドロップダウンに集約されます。
+5. **ダークモード対応**
+   - 長時間の事務作業やデータ監視でも目が疲れにくいダークモードを標準搭載しています。`;
+
+        let cachedReadmeHtml = '';
+
+        function formatInlineMarkdown(text) {
+            let safe = escapeHtml(text);
+            safe = safe.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function(_, label, url) {
+                return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + label + ' ↗</a>';
+            });
+            safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
+            return safe;
+        }
+
+        function markdownToSimpleHtml(md) {
+            const lines = String(md || '').replace(/\r\n/g, '\n').split('\n');
+            let html = '';
+            let inUl = false;
+            let inOl = false;
+
+            function closeLists() {
+                if (inUl) {
+                    html += '</ul>';
+                    inUl = false;
+                }
+                if (inOl) {
+                    html += '</ol>';
+                    inOl = false;
+                }
+            }
+
+            for (let i = 0; i < lines.length; i++) {
+                const rawLine = lines[i];
+                const trimmed = rawLine.trim();
+
+                if (!trimmed || /^---+$/.test(trimmed)) {
+                    closeLists();
+                    continue;
+                }
+
+                if (/^###\s+/.test(trimmed)) {
+                    closeLists();
+                    html += '<h3>' + formatInlineMarkdown(trimmed.replace(/^###\s+/, '')) + '</h3>';
+                    continue;
+                }
+                if (/^##\s+/.test(trimmed)) {
+                    closeLists();
+                    html += '<h2>' + formatInlineMarkdown(trimmed.replace(/^##\s+/, '')) + '</h2>';
+                    continue;
+                }
+                if (/^#\s+/.test(trimmed)) {
+                    closeLists();
+                    html += '<h1>' + formatInlineMarkdown(trimmed.replace(/^#\s+/, '')) + '</h1>';
+                    continue;
+                }
+
+                const olMatch = trimmed.match(/^\d+\.\s+(.+)$/);
+                if (olMatch) {
+                    if (inUl) { html += '</ul>'; inUl = false; }
+                    if (!inOl) { html += '<ol>'; inOl = true; }
+                    html += '<li>' + formatInlineMarkdown(olMatch[1]) + '</li>';
+                    continue;
+                }
+
+                const ulMatch = trimmed.match(/^[-*•]\s+(.+)$/);
+                if (ulMatch) {
+                    if (inOl) { html += '</ol>'; inOl = false; }
+                    if (!inUl) { html += '<ul>'; inUl = true; }
+                    html += '<li>' + formatInlineMarkdown(ulMatch[1]) + '</li>';
+                    continue;
+                }
+
+                closeLists();
+                html += '<p>' + formatInlineMarkdown(trimmed) + '</p>';
+            }
+
+            closeLists();
+            return html;
+        }
+
+        function openReadmeModal() {
+            const modal = document.getElementById('readme-modal');
+            const body = document.getElementById('readme-modal-body');
+            const statusEl = document.getElementById('readme-source-status');
+            if (!modal || !body) return;
+
+            modal.classList.add('active');
+
+            if (cachedReadmeHtml) {
+                body.innerHTML = cachedReadmeHtml;
+                return;
+            }
+
+            body.innerHTML = '<div style="display:flex;align-items:center;gap:10px;color:var(--text-muted);padding:16px 0;"><div class="spinner"></div><span>README.md を読み込み中...</span></div>';
+            if (statusEl) statusEl.textContent = 'GitHub から取得中...';
+
+            fetch(README_RAW_URL)
+                .then(function(res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.text();
+                })
+                .then(function(mdText) {
+                    cachedReadmeHtml = markdownToSimpleHtml(mdText);
+                    body.innerHTML = cachedReadmeHtml;
+                    if (statusEl) statusEl.textContent = '出典: GitHub README.md';
+                })
+                .catch(function() {
+                    cachedReadmeHtml = markdownToSimpleHtml(FALLBACK_README_MD);
+                    body.innerHTML = cachedReadmeHtml;
+                    if (statusEl) statusEl.textContent = '内蔵ガイドを表示中（オフライン/取得失敗時）';
+                });
+        }
+
+        function closeReadmeModal() {
+            const modal = document.getElementById('readme-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function handleReadmeBackdropClick(e) {
+            if (e.target && e.target.id === 'readme-modal') {
+                closeReadmeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeReadmeModal();
+            }
+        });
+
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
         const themeText = document.getElementById('theme-text');
@@ -1174,11 +1518,6 @@
 
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
-        // =========================================================
-        // 学科絞り込み設定（?gakka=XXXX）
-        // GAS側の deptId（ID課題 → ID科目 → ID学科）を優先使用し、
-        // deptId が空のレコードのみ GAKKA_LECTURE_MAP でフォールバックします。
-        // =========================================================
         const GAKKA_NAME_MAP = {
             'f6765d6d': '映像音響学科',
             'e46bce30': '食品生命科学科'
