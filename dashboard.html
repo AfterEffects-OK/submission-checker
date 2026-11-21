@@ -90,6 +90,16 @@
             white-space: nowrap;
         }
         p.subtitle { margin: 0; color: var(--text-muted); font-size: 13px; }
+        .gakka-filter-badge {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(5, 150, 105, 0.12);
+            color: var(--primary);
+        }
 
         .controls-bar {
             display: flex;
@@ -651,7 +661,7 @@
             margin-bottom: 2px;
             font-weight: 600;
             white-space: nowrap;
-            overflow: visible; /* 省略（ellipsis）させずにはみ出し可能にする */
+            overflow: visible;
             transform-origin: left center;
             display: inline-block;
             line-height: 1.2;
@@ -933,6 +943,7 @@
             <div id="header-area" class="header-content-wrapper">
                 <h2>課題別 提出状況ダッシュボード</h2>
                 <p class="subtitle">課題をタップすると 学生の提出状況が展開します</p>
+                <div id="gakka-filter-indicator" class="gakka-filter-badge" style="display: none;"></div>
             </div>
             
             <div class="controls-bar" style="position: relative;">
@@ -1165,6 +1176,66 @@
 
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3nekLkhBtP8owIsAh_cnXWFqmVHAr7qepJXaTXnJirCm-hykjdOevsV238RN9iYtXyg/exec';
 
+        // =========================================================
+        // フロントエンド学科絞り込み設定（?gakka=XXXX）
+        // APIレスポンスに学科IDが含まれない場合は、必要に応じて
+        // 「学科ID: [対象講義名...]」をここに追記して絞り込めます。
+        // =========================================================
+        const GAKKA_NAME_MAP = {
+            'f6765d6d': '映像音響学科',
+            'e46bce30': '食品生命科学科'
+        };
+
+        const GAKKA_LECTURE_MAP = {
+            // 例: 'f6765d6d': ['編集Ⅰ', '編集Ⅱ']
+        };
+
+        function getTargetGakkaId() {
+            const params = new URLSearchParams(window.location.search);
+            return (
+                params.get('gakka') ||
+                params.get('idGakkaId') ||
+                params.get('id学科') ||
+                ''
+            ).trim();
+        }
+
+        function updateGakkaFilterIndicator() {
+            const indicator = document.getElementById('gakka-filter-indicator');
+            if (!indicator) return;
+            const targetGakka = getTargetGakkaId();
+            if (!targetGakka) {
+                indicator.style.display = 'none';
+                indicator.textContent = '';
+                return;
+            }
+            const gakkaLabel = GAKKA_NAME_MAP[targetGakka]
+                ? `${GAKKA_NAME_MAP[targetGakka]} (${targetGakka})`
+                : targetGakka;
+            indicator.textContent = `学科フィルター: ${gakkaLabel}`;
+            indicator.style.display = 'inline-block';
+        }
+
+        function matchesTargetGakkaTask(task) {
+            const targetGakka = getTargetGakkaId();
+            if (!targetGakka) return true;
+
+            if (task.gakkaIds && task.gakkaIds.size > 0) {
+                return task.gakkaIds.has(targetGakka);
+            }
+
+            const allowedLectures = GAKKA_LECTURE_MAP[targetGakka];
+            if (Array.isArray(allowedLectures) && allowedLectures.length > 0) {
+                return allowedLectures.includes(task.lecture);
+            }
+
+            return true;
+        }
+
+        function getGakkaScopedTasks() {
+            return allTasksData.filter(matchesTargetGakkaTask);
+        }
+
         let allTasksData = [];
         let currentSortColumn = 'deadline';
         let currentSortDirection = 'desc';
@@ -1173,6 +1244,7 @@
         let autoRefreshTimer = null;
 
         window.addEventListener('DOMContentLoaded', function() {
+            updateGakkaFilterIndicator();
             const savedInterval = localStorage.getItem('autoRefreshInterval') || '0';
             onAutoRefreshChange(savedInterval);
             loadAllData();
@@ -1313,6 +1385,9 @@
                 const lectureVal = r.submitDate || 'その他';
                 const kadaiVal = r.kadaiName || 'その他';
                 const key = lectureVal + '_' + kadaiVal;
+                const rowGakkaId = String(
+                    r.gakkaId || r.departmentId || r.idGakkaId || r['ID学科'] || ''
+                ).trim();
 
                 if (!taskMap[key]) {
                     taskMap[key] = {
@@ -1321,10 +1396,15 @@
                         deadline: r.deadline || '-',
                         requirement: r.requirement || '-',
                         folderId: r.folderId || '',
+                        gakkaIds: new Set(),
                         totalCount: 0,
                         submittedCount: 0,
                         studentsMap: {}
                     };
+                }
+
+                if (rowGakkaId) {
+                    taskMap[key].gakkaIds.add(rowGakkaId);
                 }
 
                 const studentName = r.studentName;
@@ -1391,6 +1471,7 @@
                     if (!data || data.length === 0) return;
 
                     allTasksData = parseTaskData(data);
+                    updateDropdowns(allTasksData);
                     applyFilters();
                 })
                 .catch(error => {
@@ -1417,7 +1498,9 @@
             const currentLecture = lectureSelect.value;
             const currentKadai = kadaiSelect.value;
 
-            const lectures = [...new Set(allTasksData.map(t => t.lecture))].sort();
+            const scopedTasks = getGakkaScopedTasks();
+
+            const lectures = [...new Set(scopedTasks.map(t => t.lecture))].sort();
             lectureSelect.innerHTML = '<option value="すべて">すべて</option>';
             lectures.forEach(lec => {
                 const opt = document.createElement('option');
@@ -1428,8 +1511,8 @@
             lectureSelect.value = lectures.includes(currentLecture) ? currentLecture : 'すべて';
 
             const filteredByLecture = (lectureSelect.value === 'すべて') 
-                ? allTasksData 
-                : allTasksData.filter(t => t.lecture === lectureSelect.value);
+                ? scopedTasks 
+                : scopedTasks.filter(t => t.lecture === lectureSelect.value);
 
             const kadais = [...new Set(filteredByLecture.map(t => t.kadaiName))].sort();
             kadaiSelect.innerHTML = '<option value="すべて">すべて</option>';
@@ -1451,7 +1534,7 @@
             const selectedLecture = document.getElementById('lecture-select').value;
             const selectedKadai = document.getElementById('kadai-select').value;
 
-            let filtered = allTasksData.filter(t => {
+            let filtered = getGakkaScopedTasks().filter(t => {
                 const matchLecture = (selectedLecture === 'すべて' || t.lecture === selectedLecture);
                 const matchKadai = (selectedKadai === 'すべて' || t.kadaiName === selectedKadai);
                 return matchLecture && matchKadai;
@@ -1571,8 +1654,6 @@
             const currentSortMode = studentSortPreferences[taskKey] || 'name';
             const trimmedFolderId = task.folderId ? task.folderId.trim() : '';
             const delayStep = parseFloat(document.getElementById('delay-select')?.value || 0.3);
-            // changedTaskKeysForAnim が null（手動操作・初回描画など）なら全カード再生
-            // Set が指定されている場合は、その taskKey が含まれる課題だけ再生し、他は即表示（opacity: 1）
             const shouldPlayAnim = (changedTaskKeysForAnim === null) || changedTaskKeysForAnim.has(taskKey);
                         
             let html = '';
